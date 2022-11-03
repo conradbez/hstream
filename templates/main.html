@@ -1,0 +1,25 @@
+{% include 'header.html' %}
+<body>
+  
+<main>
+    <div 
+    hx-get="/update" 
+
+    hx-trigger="change from:body"
+    hx-swap="none"></div>
+    <!-- <div hx-ws="connect:/ws">
+        <form hx-ws="send:submit">
+          <input name="chat_message" />
+        </form>
+      </div>  -->
+  
+    <h1>StreamHtml App</h1>
+    {% for component_key, component_attr in components.items() %}
+        <div hx-get="/{{component_attr.component_key}}/label" hx-trigger="load,{{component_attr.component_key}} from:body">
+            <p  class="htmx-indicator"> loading... </p>
+        </div>
+    {% endfor %}
+
+</main>
+</body>
+</html>
