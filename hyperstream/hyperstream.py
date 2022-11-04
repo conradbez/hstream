@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import Literal, OrderedDict
+import os
 # Flow of StreamHTML
 # - User script run and each call to sh.write is recorded in a shelve db
 # - fast api routes are built of values in shelve
@@ -30,6 +31,8 @@ class Hyperstream():
 
     def __init__(self, clean_reload=False):
         self.app = FastAPI()
+        self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
+        print(self.path_to_user_script)
         with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
             if clean_reload:
                 print('''
@@ -107,14 +110,34 @@ class Hyperstream():
         
         return self.build_component(label=text, component_type='TextInput', default_value=default_value, key=key)
 
+    def plotly_output(self, fig: str, key:str = None) -> None:
+        """Displays plotly plot to user
+
+        Args:
+            plotly (str): label to display to user describing the text input 
+        Returns:
+            str: text inputted by user
+        """
+        from base64 import b64encode
+        import io
+
+        buffer = io.StringIO()
+        html = fig.to_html()
+
+        return self.build_component(label=html, component_type='TextInput', default_value=None, key=key)
+
     def build_component(self, component_type: Literal['write', 'TextInput'], label=None, default_value=None, key=None, **kwargs):
         """Writes a component to the SH front end
 
         Args:
             label (_type_, optional): Must be ubique within the app. Content to write to the web front end. Defaults to None.
             default_value (_type_, optional): default value the component returns before use enters value - will always be null for text or component where user doesn't input. Defaults to None.
-        """
-        component_key = key if key else label   # if key isn't provided we assume label is unique
+        """        
+        if key:
+            component_key = key 
+        else:
+             # if key isn't provided we assume label is unique
+            component_key = ''.join(x for x in label if x.isalpha() or x.isnumeric())
         assert not '_' in component_key,  "please don't use underscores in keys"  # we use headers to update compoennts by key but headers don't like underscores
         with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
             components = app_db['components']
@@ -208,7 +231,7 @@ class Hyperstream():
 
     def compile_user_code(self):
         self._queue_user_script_rerun = False
-        source_path = Path('/Users/conrad/gh/streamhtml/main.py')
+        source_path = self.path_to_user_script
         with open(source_path) as f:
             filebody = f.read()
         code = compile(
@@ -232,64 +255,3 @@ class Hyperstream():
         self.compile_user_code()
         self.build_fastapi_app()
         self._server_should_reload = True
-
-class UserScriptEventHandler(LoggingEventHandler):
-    def dispatch(self, event):
-        print('user file changed')
-        global app_factory
-        global hs
-        hs.run_user_script(clean_reload=True)
-        print('''User file changed''')
-
-class Server(uvicorn.Server):
-    # https://stackoverflow.com/questions/61577643/python-how-to-use-fastapi-and-uvicorn-run-without-blocking-the-thread
-    def install_signal_handlers(self):
-        pass
-
-    @contextlib.contextmanager
-    def run_in_thread(self):
-        thread = threading.Thread(target=self.run)
-        thread.start()
-        try:
-            while not self.started:
-                time.sleep(1e-3)
-            yield
-        finally:
-            self.should_exit = True
-            thread.join()
-
-
-hs = Hyperstream(clean_reload=True)
-hs.run_user_script(clean_reload=True)
-
-if __name__ == '__main__':
-
-    path = sys.argv[1] if len(sys.argv) > 1 else '.'
-    event_handler = UserScriptEventHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path, recursive=True)
-    observer.start()
-
-    try:
-        while True:
-            config = uvicorn.Config(
-                "hyperstream:hs",
-                host="127.0.0.1",
-                port=8000,
-                reload='True',
-                reload_dirs=['/Users/conrad/gh/streamhtml'],
-                reload_includes=['*'],
-                factory=True
-            )
-
-            server = Server(config=config)
-
-            with server.run_in_thread():
-                # stay in loop unless the server needs to exit
-                while not hs._server_should_reload:
-                    time.sleep(1)
-                hs._server_should_reload = False
-
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()

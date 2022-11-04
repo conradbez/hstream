@@ -1,7 +1,10 @@
-from hyperstream import Hyperstream as hs
-hs = Hyperstream(clean_reload=False)
+from hyperstream import hs
 
 text_entered = hs.text_input(text = 'text_input_label', default_value='default_value', key = 'myinput')
-hs.write(text_entered, key = 'mywrite')
-hs.write(text_entered+'2', key = 'mywrite2')
-print(text_entered, 'in main.py')
+hs.write('test')
+hs.write(text_entered, key='1')
+
+import plotly.express as px
+fig =px.scatter(x=range(10), y=range(10))
+
+hs.plotly_output(fig, key='testplot')
