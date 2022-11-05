@@ -7,7 +7,6 @@ import uvicorn
 import contextlib
 import threading
 import time
-
 import shelve
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
@@ -15,6 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import Literal, OrderedDict
 import os
+from yattag import Doc
+
 # Flow of StreamHTML
 # - User script run and each call to sh.write is recorded in a shelve db
 # - fast api routes are built of values in shelve
@@ -23,6 +24,7 @@ import os
 #
 #  Considerations
 # On code changes (fast api handles reload)
+
 templates = Jinja2Templates(directory="templates")
 emit = {'server_should_reload': False}
 
@@ -32,16 +34,15 @@ class Hyperstream():
     def __init__(self, clean_reload=False):
         self.app = FastAPI()
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
+        self.path_to_usesr_directory = Path(os.getcwd())
+        self.path_to_app_db = Path(os.getcwd()) / 'app_db'
         print(self.path_to_user_script)
-        with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
-            if clean_reload:
-                print('''
-                cleaning
-                
-                ''')
-                app_db['components'] = OrderedDict()
+
         self._server_should_reload = False
         self._queue_user_script_rerun = True
+    
+        if clean_reload:
+            self.write_components(OrderedDict())
 
     def __call__(self):
         """Builds all our paths and returns app so the server (uvicorn) can run the built app
@@ -82,6 +83,14 @@ class Hyperstream():
 
         return self.app
 
+    def get_components(self):
+        with shelve.open(str(self.path_to_app_db)) as app_db:
+            return app_db['components']
+
+    def write_components(self, components):
+        with shelve.open(str(self.path_to_app_db)) as app_db:
+            app_db['components'] = components
+
     def write(self, text: str, key: str = False) -> None:
         """Display test on the users browser
 
@@ -110,23 +119,34 @@ class Hyperstream():
         
         return self.build_component(label=text, component_type='TextInput', default_value=default_value, key=key)
 
-    def plotly_output(self, fig: str, key:str = None) -> None:
-        """Displays plotly plot to user
+    def pyplot(self, fig, key:str = None) -> None:
+        """Displays matplotlib plot to user
 
         Args:
-            plotly (str): label to display to user describing the text input 
+            fig (matplotlib.figure.Figure): label to display to user describing the text input 
         Returns:
             str: text inputted by user
+
+
+        Example:
+            import matplotlib.pyplot as plt
+            import numpy as np
+            x = np.arange(0,4*np.pi,0.1)   # start,stop,step
+            y = np.sin(x) * float(sine_height)
+            fig, ax = plt.subplots()
+            ax.plot(x,y)
+            hs.pyplot(fig, key='myplot')
         """
         from base64 import b64encode
         import io
-
-        buffer = io.StringIO()
-        html = fig.to_html()
-
-        return self.build_component(label=html, component_type='TextInput', default_value=None, key=key)
-
-    def build_component(self, component_type: Literal['write', 'TextInput'], label=None, default_value=None, key=None, **kwargs):
+        my_stringIObytes = io.BytesIO()
+        fig.savefig(my_stringIObytes, format='png')
+        my_stringIObytes.seek(0)
+        my_base64_jpgData = b64encode(my_stringIObytes.read())
+        my_base64_jpgData = my_base64_jpgData.decode("utf-8")    
+        return self.build_component(label=my_base64_jpgData, component_type='Image', default_value=None, key=key)
+        
+    def build_component(self, component_type: Literal['write', 'TextInput', 'Image'], label=None, default_value=None, key=None, **kwargs):
         """Writes a component to the SH front end
 
         Args:
@@ -139,31 +159,30 @@ class Hyperstream():
              # if key isn't provided we assume label is unique
             component_key = ''.join(x for x in label if x.isalpha() or x.isnumeric())
         assert not '_' in component_key,  "please don't use underscores in keys"  # we use headers to update compoennts by key but headers don't like underscores
-        with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
-            components = app_db['components']
-            if not components.get(component_key, False):
-                # if we don't have this component stored initialise it
-                components[component_key] = {
-                    # these values shouldn't change between reruns so we set them here on initialisation
-                    'current_value': default_value,
-                    'component_key': component_key,
-                    'component_type': component_type,
-                }
-            
-            if not components[component_key].get('label') == label: # TODO add kwargs
-                # schedule component for update
-                app_db ['update_required']= app_db.get('update_required', set()).union(set([component_key]))
+        components = self.get_components()
+        if not components.get(component_key, False):
+            # if we don't have this component stored initialise it
+            components[component_key] = {
+                # these values shouldn't change between reruns so we set them here on initialisation
+                'current_value': default_value,
+                'component_key': component_key,
+                'component_type': component_type,
+            }
+        
+        if not components[component_key].get('label') == label: # TODO add kwargs
+            # schedule component for update
+            with shelve.open(str(self.path_to_app_db)) as app_db:
+                app_db['update_required']= app_db.get('update_required', set()).union(set([component_key]))
 
-            components[component_key].update({
-                # these values can change between reruns (i.e. text input is outputted to a write component)
-                'label': label,
-            })
-            
-            app_db['components'] = components
+        components[component_key].update({
+            # these values can change between reruns (i.e. text input is outputted to a write component)
+            'label': label,
+        })
+        self.write_components(components)
         return components[component_key]['current_value']
 
     def build_fastapi_app(self):
-        with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
+        with shelve.open(str(self.path_to_app_db)) as app_db:
             components = app_db['components']
             # give each component a route on fast api app
             for component_key, component_attr in app_db['components'].items():
@@ -176,7 +195,7 @@ class Hyperstream():
         # Add main html to app
         @self.app.get("/", response_class=HTMLResponse)
         async def root(request: Request,):
-            with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
+            with shelve.open(str(self.path_to_app_db)) as app_db:
                 return templates.TemplateResponse("main.html", {"request": request, "components": app_db['components']})
 
     def function_generator_component(self, component_attr):
@@ -189,12 +208,13 @@ class Hyperstream():
             _type_: _description_
         """
         component_key = component_attr['component_key']
-        # `func_for_component` is wrapped like this because se rely on `component_attr` to be "stored" in this function
+        
+        # `func_for_component` is wrapped like this because se rely on `component_key` to be "stored" in this function after initialization
         # so each component is not overriden by the component that comes after it
         async def func_for_component(request: Request,):
+            doc, tag, text = Doc().tagtext()
             # Make sure we have the required attributes before passing to Jinja avoids ambigious HTML bugs
-            with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
-                
+            with shelve.open(str(self.path_to_app_db)) as app_db:
                 update_required_set = app_db.get('update_required', set())
                 try:
                     update_required_set.remove(component_key)
@@ -202,13 +222,38 @@ class Hyperstream():
                     pass
                 
                 app_db['update_required'] = update_required_set
-                
-                assert component_attr.get(
-                    'component_key', False) and component_attr.get('label', False)
-                if app_db['components'][component_key]['component_type'] == 'TextInput':
-                    return templates.TemplateResponse("./components/TextInput.html", {"request": request, "component_attr": component_attr})
-                elif app_db['components'][component_key]['component_type'] == 'Write':
-                    return '<p>' + app_db['components'][component_key]['label'] + '</p>'
+            component_attr = self.get_components()[component_key]
+            assert component_attr.get(
+                'component_key', False) and component_attr.get('label', False)
+            if component_attr['component_type'] == 'TextInput':
+                with tag('label'):
+                    text(component_attr['label'])
+                with tag('input', 
+                    ('name', component_key),
+                    ('hx-post', f"/{component_key}/value_changed"),
+                    ('hx-trigger',"keyup changed"),
+                    ('type', "text"),
+                    ('value',component_attr['current_value']),
+                    ):
+                    text(component_attr['label'])
+                return doc.getvalue()
+            elif component_attr['component_type'] == 'Write':
+                with tag('p'):
+                    text(component_attr['label'])
+                return doc.getvalue()
+            elif component_attr['component_type'] == 'Image':
+                with tag('img',
+                    ('src', f"data:image/png;base64,{component_attr['label']}"),
+                    ('alt', 'Graph'),
+                ):
+                    text('')
+                return doc.getvalue()
+                # templates.TemplateResponse("./components/ImageComponent.html", {"request": request, "component_attr": component_attr})
+            elif component_attr['component_type'] == 'h1':
+                with tag('h1',):
+
+                    text()
+                return template
         return func_for_component
 
     def function_generator_value_changed(self, component_attr):
@@ -216,14 +261,13 @@ class Hyperstream():
         """
         component_key = component_attr['component_key']
         async def func_for_component(request: Request, ):
-            with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
+            with shelve.open(str(self.path_to_app_db)) as app_db:
                 components = app_db['components']
                 form_values = await request.form()
                 component_value = form_values[component_key]
                 components[component_key]['current_value'] = component_value
                 app_db['components'] = components
             self._queue_user_script_rerun = True
-            print('here at _queue setting')
 
             return "success"
 
@@ -245,10 +289,6 @@ class Hyperstream():
             optimize=-1,
         )
         exec(code)
-
-        print('code compile')
-        with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
-            print(app_db['components'], 'components after compilation')
 
     def run_user_script(self, clean_reload=True):
         self.__init__(clean_reload=clean_reload)

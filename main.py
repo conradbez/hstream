@@ -1,10 +1,13 @@
 from hyperstream import hs
 
-text_entered = hs.text_input(text = 'text_input_label', default_value='default_value', key = 'myinput')
-hs.write('test')
-hs.write(text_entered, key='1')
+sine_height = hs.text_input(text = 'Sine height', default_value='3', key = 'myinput')
+hs.write(f"Sine height of {sine_height}", key='1')
 
-import plotly.express as px
-fig =px.scatter(x=range(10), y=range(10))
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.arange(0,4*np.pi,0.1)   # start,stop,step
+y = np.sin(x) * float(sine_height)
+fig, ax = plt.subplots()
+ax.plot(x,y)
+hs.pyplot(fig, key='myplot')
 
-hs.plotly_output(fig, key='testplot')
