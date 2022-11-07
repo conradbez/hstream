@@ -36,8 +36,6 @@ class Hyperstream():
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
         self.path_to_usesr_directory = Path(os.getcwd())
         self.path_to_app_db = Path(os.getcwd()) / 'app_db'
-        print(self.path_to_user_script)
-
         self._server_should_reload = False
         self._queue_user_script_rerun = True
     
@@ -54,16 +52,21 @@ class Hyperstream():
         @self.app.get("/update")
         async def should_components_update(request: Request, response: Response):
             
+
             with shelve.open('/Users/conrad/gh/streamhtml/app_db') as app_db:
                 components = list(app_db.get('update_required', []))
-                # response.headers["HX-Trigger"] = ', '.join(components)
-                # htmx expect multiple triggers in JSON format - see: https://github.com/bigskysoftware/htmx/issues/1030
-                # final form should be {"mywrite":"", "mysecondevent":""}
-                import json
-                response.headers["HX-Trigger"] = json.dumps({c: "" for c in components})
-                print(response.headers["HX-Trigger"])
-                # gotcha here is that fastapi transforms any "_" to a "-" in the header values
-            return str(response.headers["HX-Trigger"])
+                # see if we need to do a full refresh (usually if content is generated inside a conditional value based on hs)
+                if '_full_page' in components:
+                    response.headers["HX-Refresh"] = 'true'
+                    return str(response.headers["HX-Refresh"])
+                else:
+                    # response.headers["HX-Trigger"] = ', '.join(components)
+                    # htmx expect multiple triggers in JSON format - see: https://github.com/bigskysoftware/htmx/issues/1030
+                    # final form should be {"mywrite":"", "mysecondevent":""}
+                    import json
+                    response.headers["HX-Trigger"] = json.dumps({c: "" for c in components})
+                    # gotcha here is that fastapi transforms any "_" to a "-" in the header values
+                    return str(response.headers["HX-Trigger"])
 
         # Add some code to check if the python scrippt should run before we respond
         @self.app.middleware("http")
@@ -71,11 +74,10 @@ class Hyperstream():
             response = Response("Internal server error", status_code=500)
             try:
                 if self._queue_user_script_rerun:
-                    # print('calling comile')
                     self.run_user_script(clean_reload=False)
                 else:
                     pass
-                    # print('code compile skipped')
+
                 response = await call_next(request)
             finally:
                 pass
@@ -91,6 +93,14 @@ class Hyperstream():
         with shelve.open(str(self.path_to_app_db)) as app_db:
             app_db['components'] = components
 
+    def schedule_component_refresh(self, component_name):
+        with shelve.open(str(self.path_to_app_db)) as app_db:
+            app_db['update_required']= app_db.get('update_required', set()).union(set([component_name]))
+
+    def clear_component_refresh_queue():
+        with shelve.open(str(self.path_to_app_db)) as app_db:
+            app_db['update_required']= set()
+
     def write(self, text: str, key: str = False) -> None:
         """Display test on the users browser
 
@@ -103,7 +113,15 @@ class Hyperstream():
         if not key:
             key = text
         
-        return self.build_component(label=text, component_type='Write', key=key)
+        return self.build_component(label=text, component_type='Write', key=key, )
+
+
+    def markdown(self, text: str, key: str = False) -> None:
+        if not key:
+            key = text
+        
+        return self.build_component(label=text, component_type='Markdown', key=key, )
+
 
     def text_input(self, text: str, default_value: str, key:str = None) -> str:
         """Displays text input for user to input text
@@ -118,6 +136,32 @@ class Hyperstream():
             key = text
         
         return self.build_component(label=text, component_type='TextInput', default_value=default_value, key=key)
+    
+    def slider(self, label: str, minValue:int, maxValue:int, default_value: int, key:str = None) -> str:
+        """
+        """
+        if not key:
+            key = label
+        kwargs = {
+            'minValue': minValue,
+            'maxValue': maxValue,
+
+        }
+        return self.build_component(label=label, component_type='Slider', default_value=default_value, key=key, **kwargs)
+
+    def nav(self, label: list[str], default_value, key,):
+        if not key:
+                key = label
+        label
+        kwargs = {}
+
+        return self.build_component(label=label, component_type='Nav', default_value=default_value, key=key, **kwargs)
+
+
+    def h1(self, text: str, key:str = None) -> str:
+        if not key:
+            key = text
+        return self.build_component(label=text, component_type='h1', default_value=None, key=key)
 
     def pyplot(self, fig, key:str = None) -> None:
         """Displays matplotlib plot to user
@@ -137,6 +181,7 @@ class Hyperstream():
             ax.plot(x,y)
             hs.pyplot(fig, key='myplot')
         """
+
         from base64 import b64encode
         import io
         my_stringIObytes = io.BytesIO()
@@ -168,16 +213,20 @@ class Hyperstream():
                 'component_key': component_key,
                 'component_type': component_type,
             }
-        
-        if not components[component_key].get('label') == label: # TODO add kwargs
+            # and set the page to reload in full since this new component won't have a place in the original dom
+            print('queue full page reload')
+            self.schedule_component_refresh('_full_page')
+
+        if not components[component_key].get('label') == label:
             # schedule component for update
-            with shelve.open(str(self.path_to_app_db)) as app_db:
-                app_db['update_required']= app_db.get('update_required', set()).union(set([component_key]))
+            self.schedule_component_refresh(component_key)
 
         components[component_key].update({
             # these values can change between reruns (i.e. text input is outputted to a write component)
             'label': label,
         })
+        if kwargs:
+            components[component_key].update(kwargs)
         self.write_components(components)
         return components[component_key]['current_value']
 
@@ -211,7 +260,7 @@ class Hyperstream():
         
         # `func_for_component` is wrapped like this because se rely on `component_key` to be "stored" in this function after initialization
         # so each component is not overriden by the component that comes after it
-        async def func_for_component(request: Request,):
+        async def func_for_component(request: Request, response: Response):
             doc, tag, text = Doc().tagtext()
             # Make sure we have the required attributes before passing to Jinja avoids ambigious HTML bugs
             with shelve.open(str(self.path_to_app_db)) as app_db:
@@ -219,8 +268,7 @@ class Hyperstream():
                 try:
                     update_required_set.remove(component_key)
                 except:
-                    pass
-                
+                    pass  
                 app_db['update_required'] = update_required_set
             component_attr = self.get_components()[component_key]
             assert component_attr.get(
@@ -247,13 +295,39 @@ class Hyperstream():
                     ('alt', 'Graph'),
                 ):
                     text('')
+            elif component_attr['component_type'] == 'Slider':
+                with tag('input',
+                    ('name', component_key),
+                    ('type', 'range'),
+                    ('value',component_attr['current_value']),
+                    ('min', component_attr['minValue']),
+                    ('max', component_attr['maxValue']),
+                    ('hx-post', f"/{component_key}/value_changed"),
+                    ):
+                    text('')
                 return doc.getvalue()
-                # templates.TemplateResponse("./components/ImageComponent.html", {"request": request, "component_attr": component_attr})
+            
+            elif component_attr['component_type'] == 'Nav':
+                headers = {'HX-Retarget': "#hs-nav"} 
+                headers=headers
+                # with tag('nav',): 
+                for item in component_attr['label']:
+                    with tag('ul'):
+                        with tag('li',):
+                            with tag('a',
+                                ('hx-post', f"/{component_key}/value_changed?{component_key}={item}"),
+                            ):
+                                text(str(item))
+                return HTMLResponse(doc.getvalue(), headers=headers)
             elif component_attr['component_type'] == 'h1':
                 with tag('h1',):
-
-                    text()
-                return template
+                    text(component_attr['label'])
+                return doc.getvalue()
+                
+            elif component_attr['component_type'] == 'Markdown':
+                import markdown
+                html = markdown.markdown(component_attr['label'])
+                return HTMLResponse(html)
         return func_for_component
 
     def function_generator_value_changed(self, component_attr):
@@ -261,15 +335,34 @@ class Hyperstream():
         """
         component_key = component_attr['component_key']
         async def func_for_component(request: Request, ):
+            """Set component with key of query param or form entry to value
+
+            Args:
+                request (Request): _description_
+
+            Returns:
+                _type_: _description_
+            """
             with shelve.open(str(self.path_to_app_db)) as app_db:
                 components = app_db['components']
                 form_values = await request.form()
-                component_value = form_values[component_key]
+
+                component_value_from_form = form_values.get(component_key, False)
+                component_value_from_query_params = request.query_params.get(component_key, False)
+                assert component_value_from_form or component_value_from_query_params
+                component_value = component_value_from_form if component_value_from_form else component_value_from_query_params
+                print('component value', component_value)
                 components[component_key]['current_value'] = component_value
                 app_db['components'] = components
             self._queue_user_script_rerun = True
 
-            return "success"
+            return PlainTextResponse(
+                "success", 
+                headers={
+                    'HX-Reswap':'none', # we don't want the response to be swapped into the element
+                    'HX-Trigger': 'get-updated-components' # we don't want the response to be swapped into the element
+                    }
+                )
 
         return func_for_component
 
