@@ -2,8 +2,6 @@
 <body>
 <header>
   <nav id='hs-nav'>
-
-
   </nav>
 </header>
 <main>
@@ -15,10 +13,15 @@
     hx-swap="none"></div>
   
     {% for component_key, component_attr in components.items() %}
+        
+    {% if 'html' == component_key[:4] %}
+        {{component_attr | safe }}
+        {% else %}
         <div hx-get="/{{component_attr.component_key}}/label" hx-trigger="load,{{component_attr.component_key}} from:body">
             <!-- <p  class="htmx-indicator"> loading... </p> -->
             <p  class="htmx-indicator">  </p>
         </div>
+        {% endif %}
     {% endfor %}
 
 </main>
