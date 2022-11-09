@@ -13,15 +13,27 @@ from .components import Components
 from .hstag import HsDoc, HS_HTML_CONSTANT
 from .hstag import HsDoc
 
+# Vocab
+# User: Person using this library to build web apps
+# Visitor: person visiting the user's web app
+# Component: HyperStream element that displays an output to the visitor based on user scipt (i.e. hs.write)
+# and optionally takes and input from the visitor, feeding it back to the user's script (i.e. hs.text_input)
 
 # Flow of StreamHTML
-# - User script run and each call to sh.write is recorded in a shelve db
-# - fast api routes are built of values in shelve
-# - initial html is built off shelve (maps to fast api routes)
-# - home route added to fast api
+# - Visitor loads `/` and assigned a unique id
+# - User script runs, with hs.* components returning defaults and building a skeleton
+# - Each part of the skeleton calls (with htmx) FastAPI which renders based on stored outputs of script run
+# - Visitor interacts with website, updates a input triggeting a `/value_changed`
+# - hs.input component's value updated in the user's db (based on user id) and script rerun with this value
+# - html skeleton is compared to before latest user run - if this changed the whole page is refreshed
+# - if skeleton is the same the component outputs are compared, those that are dirrent are added to a `updates` list
+#   which is returned to the visitor's browser - triggering a refresh of those components (with htmx tirggers)
 #
-#  Considerations
-# On code changes (fast api handles reload)
+#
+# Considerations
+# - On code changes during local development uvicorn handles reload
+# - `hstag.py` handles the ability for the user to create html (i.e. forms) from their script
+# -
 
 templates = Jinja2Templates(directory="templates")
 emit = {"server_should_reload": False}
