@@ -3,3 +3,4 @@ app_db
 *pyc
 .gitignore
 hyperstream/__pycache__*
+*pyc
