@@ -15,7 +15,7 @@ setup(
     license="BSD",
     keywords="streamlit htmx fastapi",
     url="https://github.com/conradbez/hstream",
-    long_description=read("README"),
+    long_description=read("README.md"),
     long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 3 - Alpha",
