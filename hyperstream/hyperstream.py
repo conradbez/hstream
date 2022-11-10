@@ -12,7 +12,7 @@ from yattag import Doc
 from .components import Components
 from .hstag import HsDoc, HS_HTML_CONSTANT
 from .hstag import HsDoc
-
+import click
 # Vocab
 # User: Person using this library to build web apps
 # Visitor: person visiting the user's web app
@@ -33,15 +33,11 @@ from .hstag import HsDoc
 # Considerations
 # - On code changes during local development uvicorn handles reload
 # - `hstag.py` handles the ability for the user to create html (i.e. forms) from their script
-# -
 
-templates = Jinja2Templates(directory="templates")
-emit = {"server_should_reload": False}
-
+templates = Jinja2Templates(Path(__file__).parent / "templates")
 
 class Hyperstream(Components):
     def __init__(self):
-
         self.app = FastAPI(debug=True, middleware=middleware)
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
         self.path_to_usesr_directory = Path(os.getcwd())
@@ -56,7 +52,7 @@ class Hyperstream(Components):
         # on init we start fresh
         self.clear_components()
         self.clear_component_refresh_queue(all_component=True)
-
+        self.stylesheet_href = 'https://unpkg.com/mvp.css@1.12/mvp.css'
     def __call__(self):
         """Builds all our paths and returns app so the server (uvicorn) can run the built app
 
@@ -205,7 +201,7 @@ class Hyperstream(Components):
             components = self.get_components()
             response = templates.TemplateResponse(
                 "main.html",
-                {"request": request, "components": components},
+                {"request": request, "components": components, "stylesheet": self.stylesheet_href},
             )
             return response
 
@@ -339,7 +335,9 @@ class Hyperstream(Components):
             self.clear_component_refresh_queue(component="_full_page")
             for key_before, attr_before in compoennts_before_user_run.items():
                 attr_next = proposed_components_state[key_before]
-                component_attr_to_trackchanges = ["label"]
+                # we don't want the compoennt to refresh if the user has change the value 
+                # (html should reflect this change on teh frontend already)
+                component_attr_to_trackchanges = filter(lambda attr: attr not in ['current_value'], attr_before)
                 for attr_to_track in component_attr_to_trackchanges:
                     if not attr_before[attr_to_track] == attr_next[attr_to_track]:
                         self.schedule_component_refresh(key_before)
@@ -364,3 +362,8 @@ middleware = [
 ]
 
 hs = Hyperstream()
+
+
+if __name__ == "__main__":
+    from .runner import run
+    run()

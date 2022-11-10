@@ -1,0 +1,7 @@
+fastapi~=0.85
+uvicorn~=0.19
+watchfiles~=0.18
+Jinja2~=3.1
+Markdown~=3.4
+yattag~=1.14
+starlette_context==0.3.4

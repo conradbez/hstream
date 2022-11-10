@@ -1,10 +1,15 @@
 import os
 import uvicorn
 from uvicorn import Server
+import click
+from pathlib import Path
 
-if __name__ == "__main__":
+@click.command()
+@click.argument('user_filename')
+def run(user_filename='main'):
+    print(user_filename)    
     uvicorn.run(
-        "main:hs",
+        f"{Path(user_filename).stem}:hs",
         host="127.0.0.1",
         port=8083,
         reload="True",
@@ -12,3 +17,6 @@ if __name__ == "__main__":
         app_dir=os.getcwd(),
         reload_dirs=[os.getcwd()],
     )
+
+if __name__ == "__main__":
+    run()

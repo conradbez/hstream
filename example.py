@@ -1,5 +1,13 @@
 from hyperstream import hs
 
+# hs.stylesheet_href = "https://unpkg.com/@vladocar/basic.css@1.0.3/css/basic.css"
+
+with hs.html('section'):
+    with hs.html("form"):
+        checkbox_value = hs.checkbox('Display page', default_value='true')
+
+checkbox_value = hs.checkbox('Display page', default_value=True)
+hs.markdown(str(checkbox_value))
 page = hs.nav(['Home', 'Cards', 'Graph'], 'Home', key='nav')
 with hs.html("header"):
     hs.markdown(
@@ -20,6 +28,7 @@ with hs.html('section'):
         hs.markdown(
         f"## Third aside {1+2}",
         )
+
 # # hs.markdown("Make htmx website creation easy")
 
 # # hs.markdown(f"simply write `hs.markdown(2+2)` to get {2+2}" )

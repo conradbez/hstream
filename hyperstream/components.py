@@ -2,7 +2,7 @@ from yattag import Doc
 from yattag.simpledoc import SimpleDoc
 from typing import Literal, OrderedDict
 from functools import wraps
-
+from pathlib import Path
 from inspect import getframeinfo, stack
 
 
@@ -20,9 +20,11 @@ class Components:
 
         """
         for i in range(20):
+            
             caller = getframeinfo(stack()[i][0])
             if str(self.path_to_user_script) in caller.filename:
-                call_signiture = f"{caller.filename}, {caller.lineno}, {message}"
+                # breakpoint()
+                call_signiture = f"{Path(caller.filename).stem}, {caller.lineno}"
                 key = "".join(x for x in call_signiture if x.isalpha() or x.isnumeric())
                 return key
 
@@ -75,8 +77,11 @@ class Components:
     def component_wrapper(component_fucntion):
         @wraps(component_fucntion)
         def wrapped_component_function(self, *method_args, **method_kwargs):
+            # if we arn't provided a key let make one
             if not method_kwargs.get("key", False):
                 method_kwargs["key"] = self.get_key_based_on_call(method_args)
+
+            # if there is no current value let subsitute the default value
             value = self.build_component(
                 **component_fucntion(self, *method_args, **method_kwargs)
             )
@@ -115,7 +120,7 @@ class Components:
         )
 
     @component_wrapper
-    def text_input(self, label: str, default_value: str, key: str = None) -> str:
+    def text_input(self, label: str, *, default_value: str = '', key: str = None) -> str:
         """Displays text input for user to input text
 
         Args:
@@ -141,7 +146,7 @@ class Components:
         )
 
     @component_wrapper
-    def number_input(self, label: str, default_value: int, key: str = None) -> str:
+    def number_input(self, label: str, *, default_value: int = 0, key: str = None) -> str:
         """Displays text input for user to input text
 
         Args:
@@ -167,7 +172,7 @@ class Components:
         )
 
     @component_wrapper
-    def select_box(self, label: list[str], default_value: int, key: str = None):
+    def select_box(self, label: list[str], default_value: str = False, key: str = None) -> str:
         with self.doc.select(
             ("name", key),
             ("hx-post", f"/value_changed/{key}"),
@@ -300,3 +305,43 @@ class Components:
             self.text("")
         html = self.return_old_doc_and_init_new()
         return dict(label=html, component_type="Image", default_value=None, key=key)
+
+    @component_wrapper
+    def checkbox(
+        self,
+        label: str,
+        default_value: bool = False,
+        key: str = None,
+    ) -> str:
+        """ """
+        if not key:
+            key = label
+
+        component_attr = self.get_components().get(key, OrderedDict())
+        component_value = component_attr.get('current_value', default_value)
+        component_key = key
+        with self.tag("label",
+            ('for', component_key)
+            ):
+            self.text(label)
+        print('component_value ', component_value)
+        with self.tag(
+            "input",
+            ("id",component_key ),
+            # ("name", component_key),
+            ("type", "checkbox"),
+            ( 'checked' if component_value in ["true", True, 1, "1"] else 'notchecked', ''),
+            # annoyingly a blank checkbox is not sent back in a submit event, 
+            # so we attach the state of the checkbox here
+            # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
+            ("hx-vals", 'js:{'+component_key+': event.srcElement.checked}'),
+            ("hx-post", f"/value_changed/{component_key}"),
+        ):
+            self.text("")
+        html = self.return_old_doc_and_init_new()
+        return dict(
+            label=html,
+            component_type="Slider",
+            default_value=default_value,
+            key=key,
+        )
