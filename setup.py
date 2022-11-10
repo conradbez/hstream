@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="hstream",
-    version="0.0.9",
+    version="0.0.10",
     author="Conrad Bezuidenhout",
     author_email="conradbez1@gmail.com",
     description=("Create python webapps with ease"),
@@ -33,7 +33,7 @@ setup(
         "python-multipart",
     ],
     entry_points={"console_scripts": ["hstream = hyperstream.runner:run"]},
-    packages=["htream"],
+    packages=["hstream"],
     package_data={"hstream": ["templates/main.html", "templates/header.html"]},
     include_package_data=True,
 )
