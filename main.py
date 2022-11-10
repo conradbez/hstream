@@ -1,20 +1,35 @@
 from hyperstream import hs
 
+page = hs.nav(['Home', 'Cards', 'Graph'], 'Home', key='nav')
 with hs.html("header"):
     hs.markdown(
         f"## HyperStream {2+2}",
     )
+with hs.html('section'):
+    with hs.html("aside"):
+        hs.markdown(
+        f"## First aside {1}",
+        )
 
-# hs.markdown("Make htmx website creation easy")
+    with hs.html("aside"):
+        hs.markdown(
+        f"## Second aside {1+1}",
+        )
 
-# hs.markdown(f"simply write `hs.markdown(2+2)` to get {2+2}" )
-# with hs.html('form'):
-user_number = hs.number_input(
-    "Input a number",
-    0,
-)
+    with hs.html("aside"):
+        hs.markdown(
+        f"## Third aside {1+2}",
+        )
+# # hs.markdown("Make htmx website creation easy")
 
-hs.markdown(f"test number output {user_number}")
+# # hs.markdown(f"simply write `hs.markdown(2+2)` to get {2+2}" )
+# # with hs.html('form'):
+# user_number = hs.number_input(
+#     "Input a number",
+#     0,
+# )
+
+# hs.markdown(f"test number output {user_number}")
 
 # hs.markdown(f"and multiply {user_number} by 2 to get {user_number*2}", )
 

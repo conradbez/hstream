@@ -9,7 +9,7 @@
 
     <div 
     hx-get="/update" 
-    hx-trigger="get-updated-components from:body, change from:body" 
+    hx-trigger="get-updated-components from:body, change from:body, click from:body" 
     hx-swap="none"></div>
   
     {% for component_key, component_attr in components.items() %}

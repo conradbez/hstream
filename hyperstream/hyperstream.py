@@ -92,16 +92,13 @@ class Hyperstream(Components):
             hs_user_id = request.cookies.get("hs_user_id", False)
             if not hs_user_id:
                 hs_user_id = str(randint(100000, 1000000))
-                context.hs_user_app_db_path = self.path_to_usesr_directory / str(
+                context.hs_user_app_db_path = self.path_to_usesr_directory / "hs_data" / str(
                     hs_user_id
                 )
-                print("hs_user_id2", hs_user_id)
             else:
-                context.hs_user_app_db_path = self.path_to_usesr_directory / str(
+                context.hs_user_app_db_path = self.path_to_usesr_directory / "hs_data" / str(
                     hs_user_id
                 )
-                print(context.hs_user_app_db_path)
-            print("hs_user_id", hs_user_id)
             if request.url.path == "/":
                 # assert context.hs_user_app_db_path
                 # if this is the first request we clean all state
@@ -140,10 +137,21 @@ class Hyperstream(Components):
 
         if getattr(builtins, "hs_user_app_db_path", False):
             # running from inside user script and using the weirdly set builtins user_id
-            return str(self.path_to_usesr_directory / hs_user_app_db_path)
+            path = Path(self.path_to_usesr_directory / "hs_data" / hs_user_app_db_path)
+
         else:
             # running from inside fastapi and using the user's context
-            return str(getattr(context, "hs_user_app_db_path", "main"))
+            path = Path(getattr(
+                context, # uses FastAPI's request wide context
+                "hs_user_app_db_path", # get the hs_user_app_db_path attribute set on request based on user cookie
+                # for run's without a user (I think this just happen on the first run)
+                # there is no cookie and we just fail gracefully to a common db
+                # this might not be nessecary and could maybe just go to /dev/null
+                self.path_to_usesr_directory / "hs_data" / "main.db" 
+                
+                )) 
+            path.parent.mkdir(exist_ok=True)
+        return str(path) # we cast this to string because `shelve` doesn't like paths
 
     def get_components(
         self,

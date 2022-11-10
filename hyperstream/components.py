@@ -75,7 +75,6 @@ class Components:
     def component_wrapper(component_fucntion):
         @wraps(component_fucntion)
         def wrapped_component_function(self, *method_args, **method_kwargs):
-            print(method_kwargs)
             if not method_kwargs.get("key", False):
                 method_kwargs["key"] = self.get_key_based_on_call(method_args)
             value = self.build_component(
@@ -100,22 +99,6 @@ class Components:
         # Refresh the doc to blank for the next element
         self.doc, self.tag, self.text = Doc().tagtext()
         return old_doc
-
-    @component_wrapper
-    def write(self, display_text: str, key: str = False) -> None:
-        """Display test on the users browser
-
-        Args:
-            text (str): Text to render
-
-        Returns:
-            None
-        """
-
-        with self.tag("p"):
-            self.text(display_text)
-        display_html = self.return_old_doc_and_init_new()
-        return dict(label=display_html, key=key, component_type="Write")
 
     @component_wrapper
     def markdown(self, text: str, *, key: str = False) -> None:
@@ -251,15 +234,20 @@ class Components:
             key = label
         kwargs = {}
         component_attr = self.get_components().get(key, OrderedDict())
+        component_value = component_attr.get('current_value', False)
         component_key = key
-        for item in label:
-            with self.tag("ul"):
+        with self.tag("ul"):
+            for item in label:
+                color = "grey" if component_value == item else ""
                 with self.tag(
                     "li",
                 ):
                     with self.tag(
                         "a",
                         ("href", "#"),
+                        ('test', item),
+                        ('style', f'color:{color}'),
+                        # changing nav is currently not supported because the label isn' part of the refresh check
                         (
                             "hx-post",
                             f"/value_changed/{component_key}?{component_key}={item}",
