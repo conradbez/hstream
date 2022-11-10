@@ -13,7 +13,8 @@ Easiest interactive python web app using htmx and semantic html
 
 from hstream import hs
 
-visitor_name = hs.text_input('What's your name?', default_value = 'friend')
+visitor_name = hs.text_input("What's your name?", default_value = "friend")
+
 hs.markdown(f"Welcome {visitor_name}")
 ```
 
@@ -43,7 +44,7 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 
 ## Components
 
-`hs.teax_input`
+`hs.text_input`
 
 `hs.checkbox`
 
