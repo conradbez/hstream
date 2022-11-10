@@ -14,6 +14,7 @@ Easiest interactive python web app using htmx and semantic html
 from hstream import hs
 
 visitor_name = hs.text_input("What's your name?", default_value = "friend")
+
 hs.markdown(f"Welcome {visitor_name}")
 ```
 
@@ -29,7 +30,7 @@ Love Streamlit but:
 - impossible to customise beyond PoC phase
 - overly complicated
 
-H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide a fast and simple framework for rapid web app developmenet that follows traditional frontend/server architecture (or atleast follow it closer than Streamlit).
+H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
 
 # Features
 
@@ -55,12 +56,12 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 
 `hs.html`: allows more complex formatting, for example 
 
-`hs.stylesheet_href = https://unpkg.com/@vladocar/basic.css@1.0.3/css/basic.css` to use a diffrent classless css framework
+`hs.stylesheet_href = https://unpkg.com/@vladocar/basic.css@1.0.3/css/basic.css` to use a different classless css framework
 
 ```
 with hs.html('form'):
     hs.text_input('Name'):
-    hs.checkbox('Would you like to be my firend?')
+    hs.checkbox('Would you like to be my friend?')
 ```
 
 # Technologies
