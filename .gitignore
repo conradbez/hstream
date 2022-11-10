@@ -5,3 +5,4 @@ app_db
 hyperstream/__pycache__*
 *.pyc
 hs_data/
+.DS_Store

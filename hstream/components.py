@@ -20,7 +20,7 @@ class Components:
 
         """
         for i in range(20):
-            
+
             caller = getframeinfo(stack()[i][0])
             if str(self.path_to_user_script) in caller.filename:
                 # breakpoint()
@@ -120,7 +120,9 @@ class Components:
         )
 
     @component_wrapper
-    def text_input(self, label: str, *, default_value: str = '', key: str = None) -> str:
+    def text_input(
+        self, label: str, *, default_value: str = "", key: str = None
+    ) -> str:
         """Displays text input for user to input text
 
         Args:
@@ -146,7 +148,9 @@ class Components:
         )
 
     @component_wrapper
-    def number_input(self, label: str, *, default_value: int = 0, key: str = None) -> str:
+    def number_input(
+        self, label: str, *, default_value: int = 0, key: str = None
+    ) -> str:
         """Displays text input for user to input text
 
         Args:
@@ -172,7 +176,9 @@ class Components:
         )
 
     @component_wrapper
-    def select_box(self, label: list[str], default_value: str = False, key: str = None) -> str:
+    def select_box(
+        self, label: list[str], default_value: str = False, key: str = None
+    ) -> str:
         with self.doc.select(
             ("name", key),
             ("hx-post", f"/value_changed/{key}"),
@@ -239,7 +245,7 @@ class Components:
             key = label
         kwargs = {}
         component_attr = self.get_components().get(key, OrderedDict())
-        component_value = component_attr.get('current_value', False)
+        component_value = component_attr.get("current_value", False)
         component_key = key
         with self.tag("ul"):
             for item in label:
@@ -250,8 +256,8 @@ class Components:
                     with self.tag(
                         "a",
                         ("href", "#"),
-                        ('test', item),
-                        ('style', f'color:{color}'),
+                        ("test", item),
+                        ("style", f"color:{color}"),
                         # changing nav is currently not supported because the label isn' part of the refresh check
                         (
                             "hx-post",
@@ -318,23 +324,25 @@ class Components:
             key = label
 
         component_attr = self.get_components().get(key, OrderedDict())
-        component_value = component_attr.get('current_value', default_value)
+        component_value = component_attr.get("current_value", default_value)
         component_key = key
-        with self.tag("label",
-            ('for', component_key)
-            ):
+        with self.tag("label", ("for", component_key)):
             self.text(label)
-        print('component_value ', component_value)
         with self.tag(
             "input",
-            ("id",component_key ),
+            ("id", component_key),
             # ("name", component_key),
             ("type", "checkbox"),
-            ( 'checked' if component_value in ["true", True, 1, "1"] else 'notchecked', ''),
-            # annoyingly a blank checkbox is not sent back in a submit event, 
+            (
+                "checked"
+                if component_value in ["true", True, 1, "1"]
+                else "notchecked",
+                "",
+            ),
+            # annoyingly a blank checkbox is not sent back in a submit event,
             # so we attach the state of the checkbox here
             # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
-            ("hx-vals", 'js:{'+component_key+': event.srcElement.checked}'),
+            ("hx-vals", "js:{" + component_key + ": event.srcElement.checked}"),
             ("hx-post", f"/value_changed/{component_key}"),
         ):
             self.text("")

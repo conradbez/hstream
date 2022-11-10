@@ -13,6 +13,7 @@ from .components import Components
 from .hstag import HsDoc, HS_HTML_CONSTANT
 from .hstag import HsDoc
 import click
+
 # Vocab
 # User: Person using this library to build web apps
 # Visitor: person visiting the user's web app
@@ -36,6 +37,7 @@ import click
 
 templates = Jinja2Templates(Path(__file__).parent / "templates")
 
+
 class Hyperstream(Components):
     def __init__(self):
         self.app = FastAPI(debug=True, middleware=middleware)
@@ -52,7 +54,8 @@ class Hyperstream(Components):
         # on init we start fresh
         self.clear_components()
         self.clear_component_refresh_queue(all_component=True)
-        self.stylesheet_href = 'https://unpkg.com/mvp.css@1.12/mvp.css'
+        self.stylesheet_href = "https://unpkg.com/mvp.css@1.12/mvp.css"
+
     def __call__(self):
         """Builds all our paths and returns app so the server (uvicorn) can run the built app
 
@@ -88,12 +91,12 @@ class Hyperstream(Components):
             hs_user_id = request.cookies.get("hs_user_id", False)
             if not hs_user_id:
                 hs_user_id = str(randint(100000, 1000000))
-                context.hs_user_app_db_path = self.path_to_usesr_directory / "hs_data" / str(
-                    hs_user_id
+                context.hs_user_app_db_path = (
+                    self.path_to_usesr_directory / "hs_data" / str(hs_user_id)
                 )
             else:
-                context.hs_user_app_db_path = self.path_to_usesr_directory / "hs_data" / str(
-                    hs_user_id
+                context.hs_user_app_db_path = (
+                    self.path_to_usesr_directory / "hs_data" / str(hs_user_id)
                 )
             if request.url.path == "/":
                 # assert context.hs_user_app_db_path
@@ -137,17 +140,18 @@ class Hyperstream(Components):
 
         else:
             # running from inside fastapi and using the user's context
-            path = Path(getattr(
-                context, # uses FastAPI's request wide context
-                "hs_user_app_db_path", # get the hs_user_app_db_path attribute set on request based on user cookie
-                # for run's without a user (I think this just happen on the first run)
-                # there is no cookie and we just fail gracefully to a common db
-                # this might not be nessecary and could maybe just go to /dev/null
-                self.path_to_usesr_directory / "hs_data" / "main.db" 
-                
-                )) 
+            path = Path(
+                getattr(
+                    context,  # uses FastAPI's request wide context
+                    "hs_user_app_db_path",  # get the hs_user_app_db_path attribute set on request based on user cookie
+                    # for run's without a user (I think this just happen on the first run)
+                    # there is no cookie and we just fail gracefully to a common db
+                    # this might not be nessecary and could maybe just go to /dev/null
+                    self.path_to_usesr_directory / "hs_data" / "main.db",
+                )
+            )
             path.parent.mkdir(exist_ok=True)
-        return str(path) # we cast this to string because `shelve` doesn't like paths
+        return str(path)  # we cast this to string because `shelve` doesn't like paths
 
     def get_components(
         self,
@@ -201,7 +205,11 @@ class Hyperstream(Components):
             components = self.get_components()
             response = templates.TemplateResponse(
                 "main.html",
-                {"request": request, "components": components, "stylesheet": self.stylesheet_href},
+                {
+                    "request": request,
+                    "components": components,
+                    "stylesheet": self.stylesheet_href,
+                },
             )
             return response
 
@@ -335,9 +343,11 @@ class Hyperstream(Components):
             self.clear_component_refresh_queue(component="_full_page")
             for key_before, attr_before in compoennts_before_user_run.items():
                 attr_next = proposed_components_state[key_before]
-                # we don't want the compoennt to refresh if the user has change the value 
+                # we don't want the compoennt to refresh if the user has change the value
                 # (html should reflect this change on teh frontend already)
-                component_attr_to_trackchanges = filter(lambda attr: attr not in ['current_value'], attr_before)
+                component_attr_to_trackchanges = filter(
+                    lambda attr: attr not in ["current_value"], attr_before
+                )
                 for attr_to_track in component_attr_to_trackchanges:
                     if not attr_before[attr_to_track] == attr_next[attr_to_track]:
                         self.schedule_component_refresh(key_before)
@@ -366,4 +376,5 @@ hs = Hyperstream()
 
 if __name__ == "__main__":
     from .runner import run
+
     run()
