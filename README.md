@@ -43,7 +43,7 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 
 ## Components
 
-`hs.teax_input`
+`hs.text_input`
 
 `hs.checkbox`
 
