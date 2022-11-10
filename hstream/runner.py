@@ -7,11 +7,13 @@ from pathlib import Path
 
 @click.command()
 @click.argument("user_filename")
-def run(user_filename="main"):
+@click.option('--port', default=8080, help='Port to run the server')
+@click.option('--host', default='127.0.0.1', )
+def run(user_filename, port, host):
     uvicorn.run(
         f"{Path(user_filename).stem}:hs",
-        host="127.0.0.1",
-        port=8083,
+        host=host,
+        port=port,
         reload="True",
         factory=True,
         app_dir=os.getcwd(),

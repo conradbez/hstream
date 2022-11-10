@@ -17,7 +17,7 @@ import click
 # Vocab
 # User: Person using this library to build web apps
 # Visitor: person visiting the user's web app
-# Component: HyperStream element that displays an output to the visitor based on user scipt (i.e. hs.write)
+# Component: HStream element that displays an output to the visitor based on user scipt (i.e. hs.write)
 # and optionally takes and input from the visitor, feeding it back to the user's script (i.e. hs.text_input)
 
 # Flow of StreamHTML
@@ -38,10 +38,11 @@ import click
 templates = Jinja2Templates(Path(__file__).parent / "templates")
 
 
-class Hyperstream(Components):
+class Hstream(Components):
     def __init__(self):
         self.app = FastAPI(debug=True, middleware=middleware)
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
+        assert self.path_to_user_script, "please make sure the firsrt argument is the script file location"
         self.path_to_usesr_directory = Path(os.getcwd())
         self.path_to_app_db = Path(os.getcwd()) / "app_db"
         #
@@ -371,7 +372,7 @@ middleware = [
     )
 ]
 
-hs = Hyperstream()
+hs = Hstream()
 
 
 if __name__ == "__main__":

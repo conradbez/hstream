@@ -15,12 +15,12 @@ class Components:
         """
         Get the concat the functions call line and arguments to get a key
 
-        * Gothca * : f-strings are evaluated before we get to inspect them so they'll
-                     cause double-ups and might need explicit keys assigned
+        * Gothca * : loop will be on the same line and therefor get the same key, 
+                     we need the user to specify a key in that case
+                     this case is not checked for atm
 
         """
         for i in range(20):
-
             caller = getframeinfo(stack()[i][0])
             if str(self.path_to_user_script) in caller.filename:
                 # breakpoint()
@@ -42,10 +42,9 @@ class Components:
         # while 'yattag.simpledoc.SimpleDoc.DocumentRoot' not in str(type(self.doc.current_tag)):
 
         component_key = key
-
         assert (
             not "_" in component_key
-        ), "please don't use underscores in keys"  # we use headers to update compoennts by key but headers don't like underscores
+        ), f"please don't use underscores in keys, found in {component_key}"  # we use headers to update compoennts by key but headers don't like underscores
         components = self.get_components()
         if not components.get(component_key, False):
             # if we don't have this component stored initialise it
@@ -106,7 +105,7 @@ class Components:
         return old_doc
 
     @component_wrapper
-    def markdown(self, text: str, *, key: str = False) -> None:
+    def markdown(self, text: str, key: str = False) -> None:
         import markdown
 
         html = markdown.markdown(text)
@@ -121,7 +120,7 @@ class Components:
 
     @component_wrapper
     def text_input(
-        self, label: str, *, default_value: str = "", key: str = None
+        self, label: str, default_value: str = "", key: str = None
     ) -> str:
         """Displays text input for user to input text
 
@@ -149,7 +148,7 @@ class Components:
 
     @component_wrapper
     def number_input(
-        self, label: str, *, default_value: int = 0, key: str = None
+        self, label: str, default_value: int = 0, key: str = None
     ) -> str:
         """Displays text input for user to input text
 

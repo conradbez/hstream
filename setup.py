@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="hstream",
-    version="0.0.10",
+    version="0.0.12",
     author="Conrad Bezuidenhout",
     author_email="conradbez1@gmail.com",
     description=("Create python webapps with ease"),
@@ -32,7 +32,7 @@ setup(
         "starlette_context==0.3.4",
         "python-multipart",
     ],
-    entry_points={"console_scripts": ["hstream = hyperstream.runner:run"]},
+    entry_points={"console_scripts": ["hstream = hstream.runner:run"]},
     packages=["hstream"],
     package_data={"hstream": ["templates/main.html", "templates/header.html"]},
     include_package_data=True,

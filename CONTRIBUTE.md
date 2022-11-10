@@ -1,6 +1,6 @@
 
 ## Todo
-- move the `argsparse` in `hyperstream.py` to a click function
+- move the `argsparse` in `hstream.py` to a click function
 - make `hstag` acceot attributes similiat to yattag
 
 
