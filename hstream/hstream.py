@@ -346,9 +346,10 @@ class Hstream(Components):
                 attr_next = proposed_components_state[key_before]
                 # we don't want the compoennt to refresh if the user has change the value
                 # (html should reflect this change on teh frontend already)
-                component_attr_to_trackchanges = filter(
-                    lambda attr: attr not in ["current_value"], attr_before
-                )
+                # component_attr_to_trackchanges = filter(
+                #     lambda attr: attr not in ["current_value"], attr_before
+                # )
+                component_attr_to_trackchanges = ['label'] # just using the label for now since it's what the user sees
                 for attr_to_track in component_attr_to_trackchanges:
                     if not attr_before[attr_to_track] == attr_next[attr_to_track]:
                         self.schedule_component_refresh(key_before)
