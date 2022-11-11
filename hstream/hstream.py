@@ -352,7 +352,7 @@ class Hstream(Components):
                 for attr_to_track in component_attr_to_trackchanges:
                     if not attr_before[attr_to_track] == attr_next[attr_to_track]:
                         self.schedule_component_refresh(key_before)
-
+                        print('resheduling due to ',attr_to_track, ' in ', key_before )
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse

@@ -4,6 +4,8 @@
 
 Easiest interactive python web app using htmx and semantic html
 
+Demo: https://hstream-demo.fly.dev
+
 # Usage
 
 `pip install hstream`
@@ -41,6 +43,13 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 - [x] swap stylesheet
 - [ ] auto ssl certs for easy deployment
 - [ ] complex html manipulation from within script (setting attributes)
+- [ ] plotly plot supprt
+
+# Bugs
+
+- key handling is a little inconsistent and it's not clear to the user when they need to use keys - meaning if you run into reloading / rending issues provide all you compoennts with unique `key` parameter
+- state management is a little wonky when scripts branch off a change in a component to create a new component
+- checkbox is a little wonky and doesn't retain state across refreshes (which happens when a component is added)
 
 ## Components
 
