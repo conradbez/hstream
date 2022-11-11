@@ -17,8 +17,8 @@
     {% if 'html' == component_key[:4] %}
         {{component_attr | safe }}
         {% else %}
-        <div hx-get="/{{component_attr.component_key}}/label" hx-trigger="load,{{component_attr.component_key}} from:body">
-            <!-- <p  class="htmx-indicator"> loading... </p> -->
+        <div hx-get="/{{component_attr.component_key}}/label" hx-trigger="load,{{component_attr.component_key}} from:body" hx-swap="morph">
+            <p  class="htmx-indicator"> loading... </p>
             <p  class="htmx-indicator">  </p>
         </div>
         {% endif %}
