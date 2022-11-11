@@ -274,7 +274,7 @@ class Components:
         )
 
     @component_wrapper
-    def pyplot(self, fig, key: str = None) -> None:
+    def pyplot(self, fig, height = "200px", key: str = None) -> None:
         """Displays matplotlib plot to user
 
         Args:
@@ -306,6 +306,7 @@ class Components:
             "img",
             ("src", f"data:image/png;base64,{base64_data}"),
             ("alt", "Graph"),
+            ("height", height) # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
         ):
             self.text("")
         html = self.return_old_doc_and_init_new()
