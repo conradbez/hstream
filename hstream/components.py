@@ -1,6 +1,6 @@
 from yattag import Doc
 from yattag.simpledoc import SimpleDoc
-from typing import Literal, OrderedDict
+from typing import List, Literal, OrderedDict
 from functools import wraps
 from pathlib import Path
 from inspect import getframeinfo, stack
@@ -176,7 +176,7 @@ class Components:
 
     @component_wrapper
     def select_box(
-        self, label: list[str], default_value: str = False, key: str = None
+        self, label: List[str], default_value: str = False, key: str = None
     ) -> str:
         with self.doc.select(
             ("name", key),
@@ -236,7 +236,7 @@ class Components:
     @component_wrapper
     def nav(
         self,
-        label: list[str],
+        label: List[str],
         default_value,
         key,
     ):
