@@ -42,7 +42,7 @@ class Hstream(Components):
     def __init__(self):
         self.app = FastAPI(debug=True, middleware=middleware)
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
-        assert self.path_to_user_script, "please make sure the firsrt argument is the script file location"
+        assert self.path_to_user_script, "please make sure the first argument is the script file location"
         self.path_to_usesr_directory = Path(os.getcwd())
         self.path_to_app_db = Path(os.getcwd()) / "app_db"
         #
