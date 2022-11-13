@@ -1,3 +1,4 @@
+import json
 from random import randint
 from pathlib import Path
 import sys
@@ -10,9 +11,8 @@ from typing import OrderedDict
 import os
 from yattag import Doc
 from .components import Components
-from .hstag import HsDoc, HS_HTML_CONSTANT
-from .hstag import HsDoc
-import click
+from typing import Literal
+from bs4 import BeautifulSoup
 
 # Vocab
 # User: Person using this library to build web apps
@@ -36,8 +36,10 @@ import click
 # - `hstag.py` handles the ability for the user to create html (i.e. forms) from their script
 
 templates = Jinja2Templates(Path(__file__).parent / "templates")
+templates_path = Path(__file__).parent / "templates"
 
-
+from jinja2 import Environment, FileSystemLoader
+environment = Environment(loader=FileSystemLoader(templates_path))
 class Hstream(Components):
     def __init__(self):
         self.app = FastAPI(debug=True, middleware=middleware)
@@ -45,17 +47,13 @@ class Hstream(Components):
         assert self.path_to_user_script, "please make sure the first argument is the script file location"
         self.path_to_usesr_directory = Path(os.getcwd())
         self.path_to_app_db = Path(os.getcwd()) / "app_db"
-        #
-        # this is sctrictly for building html from within compoennts),
-        # a tweaked version of Yattag is used for html creation from within user's scripts
-        # see `hstag.py`
-        self.doc, self.tag, self.text = Doc().tagtext()
+    
 
         self._queue_user_script_rerun = True
         # on init we start fresh
         self.clear_components()
-        self.clear_component_refresh_queue(all_component=True)
         self.stylesheet_href = "https://unpkg.com/mvp.css@1.12/mvp.css"
+        self.doc, self.tag, self.text = Doc().tagtext()
 
     def __call__(self):
         """Builds all our paths and returns app so the server (uvicorn) can run the built app
@@ -64,23 +62,6 @@ class Hstream(Components):
             FastAPI()
         """
         self.build_fastapi_app()
-
-        @self.app.get("/update")
-        async def should_components_update(request: Request, response: Response):
-            components = self.get_component_refresh_queue()
-            # see if we need to do a full refresh (usually if content is generated inside a conditional value based on hs)
-            if "_full_page" in components:
-                response.headers["HX-Refresh"] = "true"
-                self.clear_component_refresh_queue(all_component=True)
-                return str(response.headers["HX-Refresh"])
-            else:
-                # htmx expect multiple triggers in JSON format - see: https://github.com/bigskysoftware/htmx/issues/1030
-                # final form should be {"mycomponentkeyEven":"", "mysecondcomponentkeyEven":""}
-                import json
-
-                response.headers["HX-Trigger"] = json.dumps({c: "" for c in components})
-                # gotcha here is that fastapi transforms any "_" to a "-" in the header values
-                return str(response.headers["HX-Trigger"])
 
         # Add some code to check if the python scrippt should run before we respond
         @self.app.middleware("http")
@@ -103,7 +84,6 @@ class Hstream(Components):
                 # assert context.hs_user_app_db_path
                 # if this is the first request we clean all state
                 self.clear_components()
-                self.clear_component_refresh_queue(all_component=True)
                 self.run_user_script()
 
             elif self._queue_user_script_rerun:
@@ -116,11 +96,6 @@ class Hstream(Components):
             return response
 
         return self.app
-
-    def html(self, *args, **kwargs):
-        doc, tag, text = HsDoc().tagtext()
-        kwargs["path_to_app_db"] = path_to_app_db = self.get_app_db_path()
-        return tag(*args, **kwargs)
 
     def get_app_db_path(self):
         """
@@ -160,6 +135,20 @@ class Hstream(Components):
         with shelve.open(self.get_app_db_path()) as app_db:
             return app_db.get("components", OrderedDict())
 
+    def get_html(
+        self,
+    ):
+        with shelve.open(self.get_app_db_path()) as app_db:
+            return app_db.get(f"html", '')
+
+    def write_html(
+        self,
+        html: str,
+    ):
+        with shelve.open(self.get_app_db_path()) as app_db:
+            app_db[f"html"] = html
+
+
     def write_components(
         self,
         components,
@@ -171,25 +160,6 @@ class Hstream(Components):
         with shelve.open(self.get_app_db_path()) as app_db:
             app_db["components"] = OrderedDict()
 
-    def schedule_component_refresh(self, component_name):
-        with shelve.open(self.get_app_db_path()) as app_db:
-            app_db["update_required"] = app_db.get("update_required", set()).union(
-                set([component_name])
-            )
-
-    def clear_component_refresh_queue(self, component=None, all_component=False):
-        with shelve.open(self.get_app_db_path()) as app_db:
-            if all_component:
-                app_db["update_required"] = set()
-            else:
-                updates_required = app_db.get("update_required", set())
-                updates_required.discard(component)
-                app_db["update_required"] = updates_required
-
-    def get_component_refresh_queue(self):
-        with shelve.open(self.get_app_db_path()) as app_db:
-            return app_db.get("update_required", set())
-
     def build_fastapi_app(self):
         # Add main html to app
         @self.app.get("/", response_class=HTMLResponse)
@@ -198,43 +168,22 @@ class Hstream(Components):
             response: Response,
         ):
             assert context.hs_user_app_db_path
+            return HTMLResponse(environment.get_template("main.html").render({'stylesheet': self.stylesheet_href}))
+
+
+        @self.app.get("/content", response_class=HTMLResponse)
+        async def content(
+            request: Request,
+            response: Response,
+        ):
+            assert context.hs_user_app_db_path
             #
             # since we're starting with a blank page we won't need  a full page reload
             # if this isn't set we get full reload requests from the first user script run (because there are delta's)
-            self.clear_component_refresh_queue(all_component=True)
+            
+            html = self.get_html()
+            return HTMLResponse(html)
 
-            components = self.get_components()
-            response = templates.TemplateResponse(
-                "main.html",
-                {
-                    "request": request,
-                    "components": components,
-                    "stylesheet": self.stylesheet_href,
-                },
-            )
-            return response
-
-        @self.app.get("/{component_key}/label", response_class=HTMLResponse)
-        async def func_for_component(
-            component_key, request: Request, response: Response
-        ):
-            # lets remove this from our refresh queue as we're processing it
-            assert getattr(context, "hs_user_app_db_path", False)
-            component_attr = self.get_components()[component_key]
-            self.clear_component_refresh_queue(
-                component=component_attr["component_key"]
-            )
-            # Make sure we have the required attributes before passing to Jinja avoids ambigious HTML bugs
-            assert component_attr.get("component_key", False) and component_attr.get(
-                "label", False
-            )
-
-            if component_attr["component_type"] == "Nav":
-                headers = {"HX-Retarget": "#hs-nav"}
-            else:
-                headers = {}
-
-            return HTMLResponse(component_attr["label"], headers=headers)
 
         @self.app.post("/value_changed/{component_key}")
         async def func_for_component_value_changed(component_key, request: Request):
@@ -260,18 +209,23 @@ class Hstream(Components):
                 if component_value_from_form
                 else component_value_from_query_params
             )
-            components[component_key]["current_value"] = component_value
+            try:
+                components[component_key] = component_value
+            except KeyError:
+                print(f'compoennt {component_key} doesnt exist yet but tried to set a value')
+                components[component_key] = component_value
+            
             self.write_components(
-                components,
-            )
+                    components,
+                )
             self._queue_user_script_rerun = True
-            return PlainTextResponse(
+            response = HTMLResponse(
                 "success",
                 headers={
-                    "HX-Reswap": "none",  # we don't want the response to be swapped into the element
-                    "HX-Trigger": "get-updated-components",  # we don't want the response to be swapped into the element
+                    "HX-Trigger": "update_content_event", 
                 },
             )
+            return response
 
     def compile_user_code(self):
         self._queue_user_script_rerun = False
@@ -310,51 +264,14 @@ class Hstream(Components):
         assert (
             context.hs_user_app_db_path
         )  # we always need the visitor's path before we execute the script so we know where to store the visitors components
+        
+        self.doc, self.tag, self.text = Doc().tagtext()
 
-        # We do a delta here to if
-        # 1) new elements have been added / page layout has changed -> the whole page needs to reload
-        # 2) components display's have changed (i.e. a `write` has a new value) -> just that component needs a refresh
-        compoennts_before_user_run = self.get_components()
         self.compile_user_code()
-        proposed_components_state = self.get_components()
-        self.write_components(self.get_components())
 
-        # START: Annoying section #TODO fix this
-        # because we're just writing html components into the components dict the delta generator below gets confused and we
-        # first need to strip them out - or the page does a full reload every `/update`
-        compoennts_before_user_run = dict(
-            filter(
-                lambda component: HS_HTML_CONSTANT not in component[0],
-                compoennts_before_user_run.items(),
-            )
-        )
-
-        proposed_components_state = dict(
-            filter(
-                lambda component: HS_HTML_CONSTANT not in component[0],
-                proposed_components_state.items(),
-            )
-        )
-        # END: Annoying section
-
-        if not compoennts_before_user_run.keys() == proposed_components_state.keys():
-            self.schedule_component_refresh("_full_page")
-
-        else:
-            self.clear_component_refresh_queue(component="_full_page")
-            for key_before, attr_before in compoennts_before_user_run.items():
-                attr_next = proposed_components_state[key_before]
-                # we don't want the compoennt to refresh if the user has change the value
-                # (html should reflect this change on teh frontend already)
-                # component_attr_to_trackchanges = filter(
-                #     lambda attr: attr not in ["current_value"], attr_before
-                # )
-                component_attr_to_trackchanges = ['label'] # just using the label for now since it's what the user sees
-                for attr_to_track in component_attr_to_trackchanges:
-                    if not attr_before[attr_to_track] == attr_next[attr_to_track]:
-                        self.schedule_component_refresh(key_before)
-                        print('resheduling due to ',attr_to_track, ' in ', key_before )
-
+        with shelve.open(self.get_app_db_path()) as app_db:
+            app_db['html'] = self.doc.getvalue()
+            
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.middleware import Middleware
@@ -378,5 +295,4 @@ hs = Hstream()
 
 if __name__ == "__main__":
     from .runner import run
-
     run()
