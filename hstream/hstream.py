@@ -55,6 +55,7 @@ class Hstream(Components):
         self.stylesheet_href = "https://unpkg.com/mvp.css@1.12/mvp.css"
         self.doc, self.tag, self.text = Doc().tagtext()
 
+
     def __call__(self):
         """Builds all our paths and returns app so the server (uvicorn) can run the built app
 

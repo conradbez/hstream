@@ -1,10 +1,15 @@
 {% include 'header.html' %}
-<body>    
+<body>  
+  <!-- setting main's id correctly is important because we use this to move the nav bar above <main></main> -->
+  <main
+  id="hs-content"
+  > 
     <div 
     hx-get="/content"
     hx-trigger="load, update_content_event" 
     hx-swap="morph"
     >
     </div> 
+  </main>
 </body>
 </html>

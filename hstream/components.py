@@ -7,10 +7,6 @@ from inspect import getframeinfo, stack
 
 
 class Components:
-    def __init__(self) -> None:
-        self.return_old_doc_and_init_new()
-        # self.doc, self.tag, self.text = Doc().tagtext()
-
     def get_key_based_on_call(self, message):
         """
         Get the concat the functions call line and arguments to get a key
@@ -60,7 +56,7 @@ class Components:
                 method_kwargs["key"] = key
             value = self.component_value(default_value = method_kwargs.get('default_value', None), key = method_kwargs['key'])
             method_kwargs['value'] = value
-            with self.tag("div",
+            with self.tag('div',
                 ('id', method_kwargs["key"]),
                 # ("hx-get",f"/content/{key}"),
                 ('hx-trigger', f"none"),
@@ -77,9 +73,8 @@ class Components:
         import markdown
 
         html = markdown.markdown(text)
-        with self.tag('main'):
-            with self.tag("div",):
-                self.doc.asis(html)
+        with self.tag("div",):
+            self.doc.asis(html)
 
     @component_wrapper
     def text_input(
@@ -94,18 +89,17 @@ class Components:
             str: text inputted by user
         """
         component_attr = self.get_components().get(key, OrderedDict())
-        with self.tag('main'):
-            with self.tag("label"):
-                self.text(label)
-            with self.tag(
-                "input",
-                ("name", key),
-                ("hx-post", f"/value_changed/{key}"),
-                ("hx-swap", "none"),
-                ("type", "text"),
-                ("value", str(kwargs['value']))
-            ):
-                pass
+        with self.tag("label"):
+            self.text(label)
+        with self.tag(
+            "input",
+            ("name", key),
+            ("hx-post", f"/value_changed/{key}"),
+            ("hx-swap", "none"),
+            ("type", "text"),
+            ("value", str(kwargs['value']))
+        ):
+            pass
     
     def html(self, *args, **kwargs):
         return self.tag(*args, **kwargs)
@@ -122,34 +116,32 @@ class Components:
         Returns:
             str: text inputted by user
         """
-        with self.tag('main'):   
-            with self.tag("label"):
-                self.text(label)
-            with self.tag(
-                "input",
-                ("name", key),
-                ("hx-post", f"/value_changed/{key}"),
-                ("hx-trigger", "focusout"),
-                ("type", "number"),
-                ("value", str(kwargs['value']))
-            ):
-                pass
+        with self.tag("label"):
+            self.text(label)
+        with self.tag(
+            "input",
+            ("name", key),
+            ("hx-post", f"/value_changed/{key}"),
+            ("hx-trigger", "focusout"),
+            ("type", "number"),
+            ("value", str(kwargs['value']))
+        ):
+            pass
 
     @component_wrapper
     def select_box(
         self, label: List[str], default_value: str = False, key: str = None, **kwargs
     ) -> str:
-        with self.tag('main'):
-            with self.doc.select(
-                ("name", key),
-                ("hx-post", f"/value_changed/{key}"),
-            ):
-                for value in label:
-                    with self.tag(
-                        "option",
-                        ("value", kwargs['value']),
-                    ):
-                        pass
+        with self.doc.select(
+            ("name", key),
+            ("hx-post", f"/value_changed/{key}"),
+        ):
+            for value in label:
+                with self.tag(
+                    "option",
+                    ("value", kwargs['value']),
+                ):
+                    pass
     @component_wrapper
     def slider(
         self,
@@ -161,19 +153,18 @@ class Components:
         **kwargs,
     ) -> str:
         """ """
-        with self.tag('main'):
-            with self.tag("label", ("for", key)):
-                self.text(label)
-            with self.tag(
-                "input",
-                ("name", key),
-                ("type", "range"),
-                ("value", str(kwargs['value'])),
-                ("min", minValue),
-                ("max", maxValue),
-                ("hx-post", f"/value_changed/{key}"),
-            ):
-                pass
+        with self.tag("label", ("for", key)):
+            self.text(label)
+        with self.tag(
+            "input",
+            ("name", key),
+            ("type", "range"),
+            ("value", str(kwargs['value'])),
+            ("min", minValue),
+            ("max", maxValue),
+            ("hx-post", f"/value_changed/{key}"),
+        ):
+            pass
 
     @component_wrapper
     def nav(
@@ -183,7 +174,15 @@ class Components:
         key,
         **kwargs,
     ):
-        with self.tag('header'):
+        hyperscript = """
+        on load log #hs-nav then 
+        put my outerHTML before #hs-content then 
+        remove me then set #nav-content @_ to ''
+        """
+        with self.tag('header',
+            ('id', 'nav-content'),
+            ('_', hyperscript)
+            ):
             with self.tag('nav'):
                 with self.tag("ul"):
                     for item in label:
@@ -230,14 +229,14 @@ class Components:
         stringIObytes.seek(0)
         base64_data = b64encode(stringIObytes.read())
         base64_data = base64_data.decode("utf-8")
-        with self.tag('main'):
-            with self.tag(
-                "img",
-                ("src", f"data:image/png;base64,{base64_data}"),
-                ("alt", "Graph"),
-                ("height", height) # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
-            ):
-                pass
+        
+        with self.tag(
+            "img",
+            ("src", f"data:image/png;base64,{base64_data}"),
+            ("alt", "Graph"),
+            ("height", height) # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
+        ):
+            pass
 
     @component_wrapper
     def checkbox(
@@ -248,23 +247,23 @@ class Components:
         **kwargs,
     ) -> str:
         """ """
-        with self.tag('main'):
-            with self.tag("label", ("for", key)):
-                self.text(label)
-            with self.tag(
-                "input",
-                ("id", key),
-                ("type", "checkbox"),
-                (
-                    "checked"
-                    if key in ["true", True, 1, "1"]
-                    else "notchecked",
-                    "",
-                ),
-                # annoyingly a blank checkbox is not sent back in a submit event,
-                # so we attach the state of the checkbox here
-                # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
-                ("hx-vals", "js:{" + key + ": event.srcElement.checked}"),
-                ("hx-post", f"/value_changed/{key}"),
-            ):
-                pass
+    
+        with self.tag("label", ("for", key)):
+            self.text(label)
+        with self.tag(
+            "input",
+            ("id", key),
+            ("type", "checkbox"),
+            (
+                "checked"
+                if key in ["true", True, 1, "1"]
+                else "notchecked",
+                "",
+            ),
+            # annoyingly a blank checkbox is not sent back in a submit event,
+            # so we attach the state of the checkbox here
+            # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
+            ("hx-vals", "js:{" + key + ": event.srcElement.checked}"),
+            ("hx-post", f"/value_changed/{key}"),
+        ):
+            pass
