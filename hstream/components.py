@@ -176,13 +176,18 @@ class Components:
         if #nav-content in #hs-nav exists
             remove #nav-content in #hs-nav
         end then
-        put me into #hs-nav then 
         remove @_ from #nav-content
-        """
+        put me into #hs-nav then
+        set @display to block
+                """
+
+
+
         with self.tag(
             'header',
             ('id', 'nav-content'),
             ('_', hyperscript),
+            ('style', 'display: none'), # so when this is first inserted the visitors screen doesn't jump
             ('visibility', 'hidden'),
             ):
             with self.tag('nav',
@@ -251,7 +256,6 @@ class Components:
         **kwargs,
     ) -> str:
         """ """
-    
         with self.tag("label", ("for", key)):
             self.text(label)
         with self.tag(
@@ -260,7 +264,7 @@ class Components:
             ("type", "checkbox"),
             (
                 "checked"
-                if key in ["true", True, 1, "1"]
+                if kwargs['value'] in ["true", True, 1, "1"]
                 else "notchecked",
                 "",
             ),
