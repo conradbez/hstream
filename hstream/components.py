@@ -11,7 +11,7 @@ class Components:
         """
         Get the concat the functions call line and arguments to get a key
 
-        * Gothca * : loop will be on the same line and therefor get the same key, 
+        * Gothca * : loop will be on the same line and therefor get the same key,
                      we need the user to specify a key in that case
                      this case is not checked for atm
 
@@ -24,9 +24,7 @@ class Components:
                 key = "".join(x for x in call_signiture if x.isalpha() or x.isnumeric())
                 return key
 
-    def component_value(
-        self, default_value=None, key=None, **kwargs
-    ):
+    def component_value(self, default_value=None, key=None, **kwargs):
         """Writes a component to the SH front end
 
         Args:
@@ -51,18 +49,23 @@ class Components:
             if not key:
                 key = self.get_key_based_on_call(method_args)
                 method_kwargs["key"] = key
-            value = self.component_value(default_value = method_kwargs.get('default_value', None), key = method_kwargs['key'])
-            method_kwargs['value'] = value
-            with self.tag('div',
-                ('id', method_kwargs["key"]),
+            value = self.component_value(
+                default_value=method_kwargs.get("default_value", None),
+                key=method_kwargs["key"],
+            )
+            method_kwargs["value"] = value
+            with self.tag(
+                "div",
+                ("id", method_kwargs["key"]),
                 # ("hx-get",f"/content/{key}"),
-                ('hx-trigger', f"none"),
+                ("hx-trigger", f"none"),
                 # ('hx-swap', "morph"),
-                ):
+            ):
                 component_fucntion(self, *method_args, **method_kwargs)
             # if there is no current value let subsitute the default value
-            
+
             return value
+
         return wrapped_component_function
 
     @component_wrapper
@@ -70,7 +73,9 @@ class Components:
         import markdown
 
         html = markdown.markdown(str(text))
-        with self.tag("div",):
+        with self.tag(
+            "div",
+        ):
             self.doc.asis(html)
 
     @component_wrapper
@@ -94,13 +99,12 @@ class Components:
             ("hx-post", f"/value_changed/{key}"),
             ("hx-swap", "none"),
             ("type", "text"),
-            ("value", str(kwargs['value']))
+            ("value", str(kwargs["value"])),
         ):
             pass
-    
+
     def html(self, *args, **kwargs):
         return self.tag(*args, **kwargs)
-
 
     @component_wrapper
     def number_input(
@@ -121,7 +125,7 @@ class Components:
             ("hx-post", f"/value_changed/{key}"),
             ("hx-trigger", "focusout"),
             ("type", "number"),
-            ("value", str(kwargs['value']))
+            ("value", str(kwargs["value"])),
         ):
             pass
 
@@ -136,9 +140,10 @@ class Components:
             for value in label:
                 with self.tag(
                     "option",
-                    ("value", kwargs['value']),
+                    ("value", kwargs["value"]),
                 ):
                     pass
+
     @component_wrapper
     def slider(
         self,
@@ -156,7 +161,7 @@ class Components:
             "input",
             ("name", key),
             ("type", "range"),
-            ("value", str(kwargs['value'])),
+            ("value", str(kwargs["value"])),
             ("min", minValue),
             ("max", maxValue),
             ("hx-post", f"/value_changed/{key}"),
@@ -181,40 +186,39 @@ class Components:
         set @style to display:block
                 """
 
-
-
         with self.tag(
-            'header',
-            ('id', 'nav-content'),
-            ('_', hyperscript),
-            ('style', 'display:none'), # so when this is first inserted the visitors screen doesn't jump
-            ('visibility', 'hidden'),
-            ):
-            with self.tag('nav',
+            "header",
+            ("id", "nav-content"),
+            ("_", hyperscript),
+            (
+                "style",
+                "display:none",
+            ),  # so when this is first inserted the visitors screen doesn't jump
+            ("visibility", "hidden"),
+        ):
+            with self.tag(
+                "nav",
             ):
                 with self.tag("ul"):
                     for item in label:
-                        color = "grey" if kwargs['value'] == item else ""
+                        color = "grey" if kwargs["value"] == item else ""
                         with self.tag(
                             "li",
-                            ("hx-trigger", 'click'),
+                            ("hx-trigger", "click"),
                             (
                                 "hx-post",
                                 f"/value_changed/{key}?{key}={item}",
                             ),
-                            ('hx-swap','none'),
-                           
+                            ("hx-swap", "none"),
                         ):
                             with self.tag(
                                 "a",
-                                
                                 # ("style", f"color:{color}"),
                             ):
                                 self.text(str(item))
 
-
     @component_wrapper
-    def pyplot(self, fig, height = "200px", key: str = None, **kwargs) -> None:
+    def pyplot(self, fig, height="200px", key: str = None, **kwargs) -> None:
         """Displays matplotlib plot to user
         Args:
             fig (matplotlib.figure.Figure): label to display to user describing the text input
@@ -238,12 +242,15 @@ class Components:
         stringIObytes.seek(0)
         base64_data = b64encode(stringIObytes.read())
         base64_data = base64_data.decode("utf-8")
-        
+
         with self.tag(
             "img",
             ("src", f"data:image/png;base64,{base64_data}"),
             ("alt", "Graph"),
-            ("height", height) # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
+            (
+                "height",
+                height,
+            ),  # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
         ):
             pass
 
@@ -264,7 +271,7 @@ class Components:
             ("type", "checkbox"),
             (
                 "checked"
-                if kwargs['value'] in ["true", True, 1, "1"]
+                if kwargs["value"] in ["true", True, 1, "1"]
                 else "notchecked",
                 "",
             ),
@@ -276,7 +283,6 @@ class Components:
         ):
             pass
 
-
     @component_wrapper
     def button(
         self,
@@ -286,13 +292,13 @@ class Components:
         **kwargs,
     ) -> str:
         """ """
-        print("{"+key+":'true'}")
+        print("{" + key + ":'true'}")
         with self.tag(
             "button",
             ("id", key),
             ("type", "submit"),
             ("hx-vals", '{nav:"true"}'),
             ("hx-post", f"/value_changed/{key}?{key}=true"),
-            ("hx-swap", "none")
+            ("hx-swap", "none"),
         ):
             self.text(label)

@@ -31,21 +31,23 @@ from jinja2 import Environment, FileSystemLoader
 templates_path = Path(__file__).parent / "templates"
 
 environment = Environment(loader=FileSystemLoader(templates_path))
+
+
 class Hstream(Components):
     def __init__(self):
         self.app = FastAPI(debug=True, middleware=middleware)
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
-        assert self.path_to_user_script, "please make sure the first argument is the script file location"
+        assert (
+            self.path_to_user_script
+        ), "please make sure the first argument is the script file location"
         self.path_to_usesr_directory = Path(os.getcwd())
         self.path_to_app_db = Path(os.getcwd()) / "app_db"
-    
 
         self._queue_user_script_rerun = True
         # on init we start fresh
         self.clear_components()
         self.stylesheet_href = "https://unpkg.com/mvp.css@1.12/mvp.css"
         self.doc, self.tag, self.text = Doc().tagtext()
-
 
     def __call__(self):
         """Builds all our paths and returns app so the server (uvicorn) can run the built app
@@ -131,7 +133,7 @@ class Hstream(Components):
         self,
     ):
         with shelve.open(self.get_app_db_path()) as app_db:
-            return app_db.get(f"html", '')
+            return app_db.get(f"html", "")
 
     def write_html(
         self,
@@ -139,7 +141,6 @@ class Hstream(Components):
     ):
         with shelve.open(self.get_app_db_path()) as app_db:
             app_db[f"html"] = html
-
 
     def write_components(
         self,
@@ -160,8 +161,11 @@ class Hstream(Components):
             response: Response,
         ):
             assert context.hs_user_app_db_path
-            return HTMLResponse(environment.get_template("main.html").render({'stylesheet': self.stylesheet_href}))
-
+            return HTMLResponse(
+                environment.get_template("main.html").render(
+                    {"stylesheet": self.stylesheet_href}
+                )
+            )
 
         @self.app.get("/content", response_class=HTMLResponse)
         async def content(
@@ -172,10 +176,9 @@ class Hstream(Components):
             #
             # since we're starting with a blank page we won't need  a full page reload
             # if this isn't set we get full reload requests from the first user script run (because there are delta's)
-            
+
             html = self.get_html()
             return HTMLResponse(html)
-
 
         @self.app.post("/value_changed/{component_key}")
         async def func_for_component_value_changed(component_key, request: Request):
@@ -204,17 +207,19 @@ class Hstream(Components):
             try:
                 components[component_key] = component_value
             except KeyError:
-                print(f'compoennt {component_key} doesnt exist yet but tried to set a value')
-                components[component_key] = component_value
-            
-            self.write_components(
-                    components,
+                print(
+                    f"compoennt {component_key} doesnt exist yet but tried to set a value"
                 )
+                components[component_key] = component_value
+
+            self.write_components(
+                components,
+            )
             self._queue_user_script_rerun = True
             response = HTMLResponse(
                 "success",
                 headers={
-                    "HX-Trigger": "update_content_event", 
+                    "HX-Trigger": "update_content_event",
                 },
             )
             return response
@@ -256,14 +261,15 @@ class Hstream(Components):
         assert (
             context.hs_user_app_db_path
         )  # we always need the visitor's path before we execute the script so we know where to store the visitors components
-        
+
         self.doc, self.tag, self.text = Doc().tagtext()
 
         self.compile_user_code()
-    
+
         with shelve.open(self.get_app_db_path()) as app_db:
-            app_db['html'] = self.doc.getvalue()
-            
+            app_db["html"] = self.doc.getvalue()
+
+
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.middleware import Middleware
@@ -287,4 +293,5 @@ hs = Hstream()
 
 if __name__ == "__main__":
     from .runner import run
+
     run()
