@@ -1,18 +1,15 @@
-import json
 from random import randint
 from pathlib import Path
 import sys
 import builtins
 import shelve
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, Response
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, Response
 from typing import OrderedDict
 import os
 from yattag import Doc
 from .components import Components
-from typing import Literal
-from bs4 import BeautifulSoup
+from jinja2 import Environment, FileSystemLoader
 
 # Vocab
 # User: Person using this library to build web apps
@@ -22,23 +19,17 @@ from bs4 import BeautifulSoup
 
 # Flow of StreamHTML
 # - Visitor loads `/` and assigned a unique id
-# - User script runs, with hs.* components returning defaults and building a skeleton
-# - Each part of the skeleton calls (with htmx) FastAPI which renders based on stored outputs of script run
-# - Visitor interacts with website, updates a input triggeting a `/value_changed`
+# - User script runs, with hs.* components returning defaults and building html
+# - Content is loaded with html morph into the visitors browser
+# - Visitor interacts with website, updates a input triggeting a `/value_changed` and a page refetch
 # - hs.input component's value updated in the user's db (based on user id) and script rerun with this value
-# - html skeleton is compared to before latest user run - if this changed the whole page is refreshed
-# - if skeleton is the same the component outputs are compared, those that are dirrent are added to a `updates` list
-#   which is returned to the visitor's browser - triggering a refresh of those components (with htmx tirggers)
-#
+# - html is served and htmx's morph inserts updated html
 #
 # Considerations
 # - On code changes during local development uvicorn handles reload
-# - `hstag.py` handles the ability for the user to create html (i.e. forms) from their script
-
-templates = Jinja2Templates(Path(__file__).parent / "templates")
+# - Nav is dynamically moved out of main content area with hyperscript
 templates_path = Path(__file__).parent / "templates"
 
-from jinja2 import Environment, FileSystemLoader
 environment = Environment(loader=FileSystemLoader(templates_path))
 class Hstream(Components):
     def __init__(self):
@@ -269,7 +260,7 @@ class Hstream(Components):
         self.doc, self.tag, self.text = Doc().tagtext()
 
         self.compile_user_code()
-
+    
         with shelve.open(self.get_app_db_path()) as app_db:
             app_db['html'] = self.doc.getvalue()
             

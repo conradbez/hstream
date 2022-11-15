@@ -41,10 +41,7 @@ class Components:
             not "_" in key
         ), f"please don't use underscores in keys, found in {key}"  # we use headers to update compoennts by key but headers don't like underscores
         components = self.get_components()
-        try:
-            return components.get(key, default_value)
-        except KeyError:
-            return default_value
+        return components.get(key, default_value)
 
     def component_wrapper(component_fucntion):
         @wraps(component_fucntion)
@@ -72,7 +69,7 @@ class Components:
     def markdown(self, text: str, key: str = False, **kwargs) -> None:
         import markdown
 
-        html = markdown.markdown(text)
+        html = markdown.markdown(str(text))
         with self.tag("div",):
             self.doc.asis(html)
 
@@ -174,32 +171,39 @@ class Components:
         key,
         **kwargs,
     ):
-        hyperscript = """
+        hyperscript = f"""
         on load log #hs-nav then 
-        put my outerHTML before #hs-content then 
-        remove me then set #nav-content @_ to ''
+        if #nav-content in #hs-nav exists
+            remove #nav-content in #hs-nav
+        end then
+        put me into #hs-nav then 
+        remove @_ from #nav-content
         """
-        with self.tag('header',
+        with self.tag(
+            'header',
             ('id', 'nav-content'),
-            ('_', hyperscript)
+            ('_', hyperscript),
+            ('visibility', 'hidden'),
             ):
-            with self.tag('nav'):
+            with self.tag('nav',
+            ):
                 with self.tag("ul"):
                     for item in label:
                         color = "grey" if kwargs['value'] == item else ""
                         with self.tag(
                             "li",
+                            ("hx-trigger", 'click'),
+                            (
+                                "hx-post",
+                                f"/value_changed/{key}?{key}={item}",
+                            ),
+                            ('hx-swap','none'),
+                           
                         ):
                             with self.tag(
                                 "a",
-                                ("href", "#"),
-                                ("test", item),
-                                ("style", f"color:{color}"),
-                                # changing nav is currently not supported because the label isn' part of the refresh check
-                                (
-                                    "hx-post",
-                                    f"/value_changed/{key}?{key}={item}",
-                                ),
+                                
+                                # ("style", f"color:{color}"),
                             ):
                                 self.text(str(item))
 
@@ -267,3 +271,24 @@ class Components:
             ("hx-post", f"/value_changed/{key}"),
         ):
             pass
+
+
+    @component_wrapper
+    def button(
+        self,
+        label: str,
+        default_value: bool = False,
+        key: str = None,
+        **kwargs,
+    ) -> str:
+        """ """
+        print("{"+key+":'true'}")
+        with self.tag(
+            "button",
+            ("id", key),
+            ("type", "submit"),
+            ("hx-vals", '{nav:"true"}'),
+            ("hx-post", f"/value_changed/{key}?{key}=true"),
+            ("hx-swap", "none")
+        ):
+            self.text(label)
