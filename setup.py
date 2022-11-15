@@ -31,6 +31,7 @@ setup(
         "yattag~=1.14",
         "starlette_context==0.3.4",
         "python-multipart",
+        "matplotlib",
     ],
     entry_points={"console_scripts": ["hstream = hstream.runner:run"]},
     packages=["hstream"],
