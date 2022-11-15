@@ -178,7 +178,7 @@ class Components:
         end then
         remove @_ from #nav-content
         put me into #hs-nav then
-        set @display to block
+        set @style to display:block
                 """
 
 
@@ -187,7 +187,7 @@ class Components:
             'header',
             ('id', 'nav-content'),
             ('_', hyperscript),
-            ('style', 'display: none'), # so when this is first inserted the visitors screen doesn't jump
+            ('style', 'display:none'), # so when this is first inserted the visitors screen doesn't jump
             ('visibility', 'hidden'),
             ):
             with self.tag('nav',
