@@ -1,29 +1,13 @@
 {% include 'header.html' %}
+
 <body>
-<header>
-  <nav id='hs-nav'>
-  </nav>
-</header>
-<main>
-    <!-- `get-updated-components` is fired by response to values updating -->
+  <div id='hs-nav'>
 
-    <div 
-    hx-get="/update" 
-    hx-trigger="get-updated-components from:body, change from:body, click from:body" 
-    hx-swap="none"></div>
-  
-    {% for component_key, component_attr in components.items() %}
-        
-    {% if 'html' == component_key[:4] %}
-        {{component_attr | safe }}
-        {% else %}
-        <div hx-get="/{{component_attr.component_key}}/label" hx-trigger="load,{{component_attr.component_key}} from:body" hx-swap="morph">
-            <p  class="htmx-indicator"> loading... </p>
-            <p  class="htmx-indicator">  </p>
-        </div>
-        {% endif %}
-    {% endfor %}
-
-</main>
+  </div>
+  <main>
+    <div hx-get="/content" hx-trigger="load, update_content_event from:body" hx-swap="morph">
+    </div>
+  </main>
 </body>
+
 </html>

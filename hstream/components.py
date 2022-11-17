@@ -7,15 +7,11 @@ from inspect import getframeinfo, stack
 
 
 class Components:
-    def __init__(self) -> None:
-        self.return_old_doc_and_init_new()
-        # self.doc, self.tag, self.text = Doc().tagtext()
-
     def get_key_based_on_call(self, message):
         """
         Get the concat the functions call line and arguments to get a key
 
-        * Gothca * : loop will be on the same line and therefor get the same key, 
+        * Gothca * : loop will be on the same line and therefor get the same key,
                      we need the user to specify a key in that case
                      this case is not checked for atm
 
@@ -28,9 +24,7 @@ class Components:
                 key = "".join(x for x in call_signiture if x.isalpha() or x.isnumeric())
                 return key
 
-    def build_component(
-        self, component_type, label=None, default_value=None, key=None, **kwargs
-    ):
+    def component_value(self, default_value=None, key=None, **kwargs):
         """Writes a component to the SH front end
 
         Args:
@@ -41,86 +35,52 @@ class Components:
         # to support user's use of `with hs.tag` we first need to exit out of the context manager
         # while 'yattag.simpledoc.SimpleDoc.DocumentRoot' not in str(type(self.doc.current_tag)):
 
-        component_key = key
         assert (
-            not "_" in component_key
-        ), f"please don't use underscores in keys, found in {component_key}"  # we use headers to update compoennts by key but headers don't like underscores
+            not "_" in key
+        ), f"please don't use underscores in keys, found in {key}"  # we use headers to update compoennts by key but headers don't like underscores
         components = self.get_components()
-        if not components.get(component_key, False):
-            # if we don't have this component stored initialise it
-            components[component_key] = {
-                # these values shouldn't change between reruns so we set them here on initialisation
-                "current_value": default_value,
-                "component_key": component_key,
-                "component_type": component_type,
-            }
-
-        components[component_key].update(
-            {
-                # these values can change between reruns (i.e. text input is outputted to a write component)
-                "label": label,
-            }
-        )
-
-        if kwargs:
-            components[component_key].update(kwargs)
-        try:
-            self.write_components(
-                components,
-            )
-        except Exception as e:
-            print("error ", e)
-
-        return components[component_key]["current_value"]
+        return components.get(key, default_value)
 
     def component_wrapper(component_fucntion):
         @wraps(component_fucntion)
         def wrapped_component_function(self, *method_args, **method_kwargs):
             # if we arn't provided a key let make one
-            if not method_kwargs.get("key", False):
-                method_kwargs["key"] = self.get_key_based_on_call(method_args)
-
-            # if there is no current value let subsitute the default value
-            value = self.build_component(
-                **component_fucntion(self, *method_args, **method_kwargs)
+            key = method_kwargs.get("key", False)
+            if not key:
+                key = self.get_key_based_on_call(method_args)
+                method_kwargs["key"] = key
+            value = self.component_value(
+                default_value=method_kwargs.get("default_value", None),
+                key=method_kwargs["key"],
             )
+            method_kwargs["value"] = value
+            with self.tag(
+                "div",
+                ("id", method_kwargs["key"]),
+                # ("hx-get",f"/content/{key}"),
+                ("hx-trigger", f"none"),
+                # ('hx-swap', "morph"),
+            ):
+                component_fucntion(self, *method_args, **method_kwargs)
+            # if there is no current value let subsitute the default value
+
             return value
 
         return wrapped_component_function
 
-    def return_old_doc_and_init_new(self):
-        old_doc = ""
-        if getattr(self, "doc", False):
-            #
-            # to support user's use of `with hs.tag` we first need to exit out of the context manager
-            # untill we reach the root (in case we are nested deep within `with's`)
-            while "yattag.simpledoc.SimpleDoc.DocumentRoot" not in str(
-                type(self.doc.current_tag)
-            ):
-                self.doc.current_tag.__exit__(False, value=None, traceback=False)
-            old_doc = str(self.doc.getvalue())
-
-        # Refresh the doc to blank for the next element
-        self.doc, self.tag, self.text = Doc().tagtext()
-        return old_doc
-
     @component_wrapper
-    def markdown(self, text: str, key: str = False) -> None:
+    def markdown(self, text: str, key: str = False, **kwargs) -> None:
         import markdown
 
-        html = markdown.markdown(text)
-        with self.tag("div"):
+        html = markdown.markdown(str(text))
+        with self.tag(
+            "div",
+        ):
             self.doc.asis(html)
-        display_html = self.return_old_doc_and_init_new()
-        return dict(
-            label=display_html,
-            component_type="Markdown",
-            key=key,
-        )
 
     @component_wrapper
     def text_input(
-        self, label: str, default_value: str = "", key: str = None
+        self, label: str, default_value: str = "", key: str = None, **kwargs
     ) -> str:
         """Displays text input for user to input text
 
@@ -137,28 +97,26 @@ class Components:
             "input",
             ("name", key),
             ("hx-post", f"/value_changed/{key}"),
-            ("hx-trigger", "focusout"),
+            ("hx-swap", "none"),
             ("type", "text"),
+            ("value", str(kwargs["value"])),
         ):
             pass
-        html = self.return_old_doc_and_init_new()
-        return dict(
-            label=html, component_type="TextInput", default_value=default_value, key=key
-        )
+
+    def html(self, *args, **kwargs):
+        return self.tag(*args, **kwargs)
 
     @component_wrapper
     def number_input(
-        self, label: str, default_value: int = 0, key: str = None
+        self, label: str, default_value: int = 0, key: str = None, **kwargs
     ) -> str:
         """Displays text input for user to input text
-
         Args:
             text (str): label to display to user describing the text input
             default_value (str): value innitially entered into text box
         Returns:
             str: text inputted by user
         """
-        component_attr = self.get_components().get(key, OrderedDict())
         with self.tag("label"):
             self.text(label)
         with self.tag(
@@ -167,32 +125,24 @@ class Components:
             ("hx-post", f"/value_changed/{key}"),
             ("hx-trigger", "focusout"),
             ("type", "number"),
+            ("value", str(kwargs["value"])),
         ):
             pass
-        html = self.return_old_doc_and_init_new()
-        return dict(
-            label=html, component_type="TextInput", default_value=default_value, key=key
-        )
 
     @component_wrapper
     def select_box(
-        self, label: List[str], default_value: str = False, key: str = None
+        self, label: List[str], default_value: str = False, key: str = None, **kwargs
     ) -> str:
         with self.doc.select(
             ("name", key),
             ("hx-post", f"/value_changed/{key}"),
-            # multiple = "multiple"
         ):
             for value in label:
                 with self.tag(
                     "option",
-                    ("value", value),
+                    ("value", kwargs["value"]),
                 ):
-                    self.text(value)
-        html = self.return_old_doc_and_init_new()
-        return dict(
-            label=html, component_type="TextInput", default_value=default_value, key=key
-        )
+                    pass
 
     @component_wrapper
     def slider(
@@ -202,36 +152,21 @@ class Components:
         maxValue: int,
         default_value: int,
         key: str = None,
+        **kwargs,
     ) -> str:
         """ """
-        if not key:
-            key = label
-
-        kwargs = {
-            "minValue": minValue,
-            "maxValue": maxValue,
-        }
-
-        component_attr = self.get_components().get(key, OrderedDict())
-        component_key = key
+        with self.tag("label", ("for", key)):
+            self.text(label)
         with self.tag(
             "input",
-            ("name", component_key),
+            ("name", key),
             ("type", "range"),
-            ("value", component_attr.get("current_value", "")),
-            ("min", component_attr.get("minValue", 0)),
-            ("max", component_attr.get("maxValue", 100)),
-            ("hx-post", f"/value_changed/{component_key}"),
+            ("value", str(kwargs["value"])),
+            ("min", minValue),
+            ("max", maxValue),
+            ("hx-post", f"/value_changed/{key}"),
         ):
-            self.text("")
-        html = self.return_old_doc_and_init_new()
-        return dict(
-            label=html,
-            component_type="Slider",
-            default_value=default_value,
-            key=key,
-            **kwargs,
-        )
+            pass
 
     @component_wrapper
     def nav(
@@ -239,50 +174,56 @@ class Components:
         label: List[str],
         default_value,
         key,
+        **kwargs,
     ):
-        if not key:
-            key = label
-        kwargs = {}
-        component_attr = self.get_components().get(key, OrderedDict())
-        component_value = component_attr.get("current_value", False)
-        component_key = key
-        with self.tag("ul"):
-            for item in label:
-                color = "grey" if component_value == item else ""
-                with self.tag(
-                    "li",
-                ):
-                    with self.tag(
-                        "a",
-                        ("href", "#"),
-                        ("test", item),
-                        ("style", f"color:{color}"),
-                        # changing nav is currently not supported because the label isn' part of the refresh check
-                        (
-                            "hx-post",
-                            f"/value_changed/{component_key}?{component_key}={item}",
-                        ),
-                    ):
-                        self.text(str(item))
-        html = self.return_old_doc_and_init_new()
-        return dict(
-            label=html,
-            component_type="Nav",
-            default_value=default_value,
-            key=key,
-            **kwargs,
-        )
+        hyperscript = f"""
+        on load log #hs-nav then 
+        if #nav-content in #hs-nav exists
+            remove #nav-content in #hs-nav
+        end then
+        remove @_ from #nav-content
+        put me into #hs-nav then
+        set @style to display:block
+                """
+
+        with self.tag(
+            "header",
+            ("id", "nav-content"),
+            ("_", hyperscript),
+            (
+                "style",
+                "display:none",
+            ),  # so when this is first inserted the visitors screen doesn't jump
+            ("visibility", "hidden"),
+        ):
+            with self.tag(
+                "nav",
+            ):
+                with self.tag("ul"):
+                    for item in label:
+                        color = "grey" if kwargs["value"] == item else ""
+                        with self.tag(
+                            "li",
+                            ("hx-trigger", "click"),
+                            (
+                                "hx-post",
+                                f"/value_changed/{key}?{key}={item}",
+                            ),
+                            ("hx-swap", "none"),
+                        ):
+                            with self.tag(
+                                "a",
+                                # ("style", f"color:{color}"),
+                            ):
+                                self.text(str(item))
 
     @component_wrapper
-    def pyplot(self, fig, height = "200px", key: str = None) -> None:
+    def pyplot(self, fig, height="200px", key: str = None, **kwargs) -> None:
         """Displays matplotlib plot to user
-
         Args:
             fig (matplotlib.figure.Figure): label to display to user describing the text input
         Returns:
             str: text inputted by user
-
-
         Example:
             import matplotlib.pyplot as plt
             import numpy as np
@@ -306,11 +247,12 @@ class Components:
             "img",
             ("src", f"data:image/png;base64,{base64_data}"),
             ("alt", "Graph"),
-            ("height", height) # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
+            (
+                "height",
+                height,
+            ),  # we set the height manually so swapping images doesn't cause a page jump (due to size 100 -> 0 -> 100)
         ):
-            self.text("")
-        html = self.return_old_doc_and_init_new()
-        return dict(label=html, component_type="Image", default_value=None, key=key)
+            pass
 
     @component_wrapper
     def checkbox(
@@ -318,38 +260,45 @@ class Components:
         label: str,
         default_value: bool = False,
         key: str = None,
+        **kwargs,
     ) -> str:
         """ """
-        if not key:
-            key = label
-
-        component_attr = self.get_components().get(key, OrderedDict())
-        component_value = component_attr.get("current_value", default_value)
-        component_key = key
-        with self.tag("label", ("for", component_key)):
+        with self.tag("label", ("for", key)):
             self.text(label)
         with self.tag(
             "input",
-            ("id", component_key),
-            # ("name", component_key),
+            ("id", key),
             ("type", "checkbox"),
             (
                 "checked"
-                if component_value in ["true", True, 1, "1"]
+                if kwargs["value"] in ["true", True, 1, "1"]
                 else "notchecked",
                 "",
             ),
             # annoyingly a blank checkbox is not sent back in a submit event,
             # so we attach the state of the checkbox here
             # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
-            ("hx-vals", "js:{" + component_key + ": event.srcElement.checked}"),
-            ("hx-post", f"/value_changed/{component_key}"),
+            ("hx-vals", "js:{" + key + ": event.srcElement.checked}"),
+            ("hx-post", f"/value_changed/{key}"),
         ):
-            self.text("")
-        html = self.return_old_doc_and_init_new()
-        return dict(
-            label=html,
-            component_type="Slider",
-            default_value=default_value,
-            key=key,
-        )
+            pass
+
+    @component_wrapper
+    def button(
+        self,
+        label: str,
+        default_value: bool = False,
+        key: str = None,
+        **kwargs,
+    ) -> str:
+        """ """
+        print("{" + key + ":'true'}")
+        with self.tag(
+            "button",
+            ("id", key),
+            ("type", "submit"),
+            ("hx-vals", '{nav:"true"}'),
+            ("hx-post", f"/value_changed/{key}?{key}=true"),
+            ("hx-swap", "none"),
+        ):
+            self.text(label)
