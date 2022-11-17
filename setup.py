@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="hstream",
-    version="0.0.14",
+    version="0.0.15",
     author="Conrad Bezuidenhout",
     author_email="conradbez1@gmail.com",
     description=("Create python webapps with ease"),
