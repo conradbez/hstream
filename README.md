@@ -66,6 +66,8 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 
 Form example:
 
+- a html form
+
 ```
 from hstream import hs
 with hs.html('form'):
@@ -75,7 +77,7 @@ with hs.html('form'):
 
 ![hstream form demo](docs/form_example.png)
 
-Card example:
+- a card provided by [mvp.css](https://andybrewer.github.io/mvp/)
 
 ```
 from hstream import hs
