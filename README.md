@@ -28,9 +28,9 @@ hs.markdown(f"Welcome {visitor_name}")
 
 Love Streamlit but:
 
-- find it hard to deploy
 - impossible to customise beyond PoC phase
-- overly complicated
+- hard to reason about when extending and deploying
+- non-standard approach doesn't play nicely with existing ecosystems
 
 H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
 
@@ -41,15 +41,14 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 - [x] semantic html and basic html manipulation from within script
 - [x] basic components - see below
 - [x] swap stylesheet
+- [x] complex html manipulation from within script (setting attributes)
 - [ ] auto ssl certs for easy deployment
-- [ ] complex html manipulation from within script (setting attributes)
 - [ ] plotly plot supprt
+- [ ] select and multi select components
 
 # Bugs
 
 - key handling is a little inconsistent and it's not clear to the user when they need to use keys - meaning if you run into reloading / rending issues provide all you compoennts with unique `key` parameter
-- state management is a little wonky when scripts branch off a change in a component to create a new component
-- checkbox is a little wonky and doesn't retain state across refreshes (which happens when a component is added)
 
 ## Components
 
@@ -65,13 +64,37 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 
 `hs.html`: allows more complex formatting, for example 
 
-`hs.stylesheet_href = https://unpkg.com/@vladocar/basic.css@1.0.3/css/basic.css` to use a different classless css framework
+Form example:
 
 ```
+from hstream import hs
 with hs.html('form'):
-    hs.text_input('Name'):
+    hs.text_input('Name')
     hs.checkbox('Would you like to be my friend?')
 ```
+
+![hstream form demo](docs/form_example.png)
+
+Card example:
+
+```
+from hstream import hs
+with hs.html('section'):
+    with hs.html('aside'):
+        hs.markdown('We can make some beautiful pages very simply')
+    with hs.html('aside'):
+        hs.markdown('For example these responsive cards, which respond to screen sizes')
+    with hs.html('aside'):
+        hs.markdown('Thanks to: ')
+        with hs.html('a', href='https://andybrewer.github.io/mvp/'):
+            hs.markdown('mvp.css')
+```
+
+![hstream form demo](docs/card_example.png)
+
+`hs.stylesheet_href = https://unpkg.com/@vladocar/basic.css@1.0.3/css/basic.css` to use a different classless css framework
+
+`hs.app`: to directly access the FastAPI instance if you want to extend it like a normal webserver (i.e. add custom paths, static files ect.)
 
 # Technologies
 
