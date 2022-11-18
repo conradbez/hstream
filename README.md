@@ -52,9 +52,13 @@ H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide 
 
 ## Components
 
+`hs.markdown`
+
 `hs.text_input`
 
 `hs.checkbox`
+
+`hs.button`: renders and evaluates to true if the user click the button (still a little unsure exactly how this should be implemented as evaluating to true doesn't quite capture the ideal of pressing a button)
 
 `hs.slider`: numeric slider input
 
