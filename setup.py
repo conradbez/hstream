@@ -13,6 +13,7 @@ setup(
     author_email="conradbez1@gmail.com",
     description=("Create python webapps with ease"),
     license="BSD",
+    license_files = ["LICENSE"],
     keywords="streamlit htmx fastapi",
     url="https://github.com/conradbez/hstream",
     long_description=read("README.md"),
