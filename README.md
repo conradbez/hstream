@@ -4,8 +4,6 @@
 
 Easiest interactive python web app using htmx and semantic html
 
-Demo: https://hstream-demo.fly.dev
-
 # Usage
 
 `pip install hstream`
