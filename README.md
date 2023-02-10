@@ -30,7 +30,7 @@ Love Streamlit but:
 - hard to reason about when extending and deploying
 - non-standard approach doesn't play nicely with existing ecosystems
 
-H-(html)-Stream stream is built with semantic html, FastApi and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
+H-(html)-Stream is built with semantic html, FastApi and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
 
 # Features
 
