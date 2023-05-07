@@ -1,11 +1,21 @@
 {% include 'header.html' %}
 
 <body>
+    <!-- Let's disable form submits (causing page reloads) on enter  -->
+    <script type="text/javascript">
+      window.addEventListener('keydown',function(e){
+        if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13){if(e.target.nodeName=='INPUT'){
+          e.preventDefault()
+          e.srcElement.blur()
+          return false}}
+      },true);
+      window.addEventListener('keydown',function(e){if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13){if(e.target.nodeName=='INPUT'){console.log("enter blocked so page doesn't reload");return false;}}},true);
+    </script>
   <div id='hs-nav'>
 
   </div>
   <main>
-    <div hx-get="/content" hx-trigger="load, update_content_event from:body" hx-swap="morph">
+    <div id="hs-content" hx-get="/content" hx-trigger="load,update_content_event from:body" hx-swap="morph">
     </div>
   </main>
 </body>

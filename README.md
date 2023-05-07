@@ -41,12 +41,12 @@ H-(html)-Stream is built with semantic html, FastApi and htmx to provide a fast 
 - [x] swap stylesheet
 - [x] complex html manipulation from within script (setting attributes)
 - [ ] auto ssl certs for easy deployment
-- [ ] plotly plot supprt
+- [ ] plotly plot support
 - [ ] select and multi select components
 
 # Bugs
 
-- key handling is a little inconsistent and it's not clear to the user when they need to use keys - meaning if you run into reloading / rending issues provide all you compoennts with unique `key` parameter
+- key handling is a little inconsistent and it's not clear to the user when they need to use keys - meaning if you run into reloading / rending issues provide all you components with unique `key` parameter
 
 ## Components
 

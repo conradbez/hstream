@@ -135,14 +135,16 @@ class Components:
     ) -> str:
         with self.doc.select(
             ("name", key),
+            # ("value", str(kwargs["value"])),
             ("hx-post", f"/value_changed/{key}"),
         ):
             for value in label:
                 with self.tag(
                     "option",
-                    ("value", kwargs["value"]),
+                    ("value", value),
+                    ("selected", "") if kwargs["value"] == value else ('','')
                 ):
-                    pass
+                    self.text(str(value))
 
     @component_wrapper
     def slider(

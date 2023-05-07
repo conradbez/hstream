@@ -4,7 +4,6 @@ from uvicorn import Server
 import click
 from pathlib import Path
 
-
 @click.command()
 @click.argument("user_filename")
 @click.option("--port", default=8080, help="Port to run the server")
@@ -22,6 +21,7 @@ def run(user_filename, port, host):
         app_dir=os.getcwd(),
         reload_dirs=[os.getcwd()],
     )
+
 
 
 if __name__ == "__main__":

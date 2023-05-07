@@ -32,18 +32,17 @@ templates_path = Path(__file__).parent / "templates"
 
 environment = Environment(loader=FileSystemLoader(templates_path))
 
-
 class Hstream(Components):
-    def __init__(self):
-        self.app = FastAPI(debug=True, middleware=middleware)
+    def __init__(self, development_mode = True):
+        self.development_mode = development_mode
+        self.app = FastAPI(debug=self.development_mode, middleware=middleware)
         self.path_to_user_script = Path(os.getcwd()) / Path(sys.argv[1])
         assert (
             self.path_to_user_script
         ), "please make sure the first argument is the script file location"
-        self.path_to_usesr_directory = Path(os.getcwd())
+        self.path_to_user_directory = Path(os.getcwd())
         self.path_to_app_db = Path(os.getcwd()) / "app_db"
 
-        self._queue_user_script_rerun = True
         # on init we start fresh
         self.clear_components()
         self.stylesheet_href = "https://unpkg.com/mvp.css@1.12/mvp.css"
@@ -57,7 +56,9 @@ class Hstream(Components):
         """
         self.build_fastapi_app()
 
-        # Add some code to check if the python scrippt should run before we respond
+        # Assign user_id if it doesn't exist, 
+        # setup db and 
+        # check if the python script should run before we respond
         @self.app.middleware("http")
         async def evaluate_user_code_middleware(
             request: Request,
@@ -68,20 +69,22 @@ class Hstream(Components):
             if not hs_user_id:
                 hs_user_id = str(randint(100000, 1000000))
                 context.hs_user_app_db_path = (
-                    self.path_to_usesr_directory / "hs_data" / str(hs_user_id)
+                    self.path_to_user_directory / "hs_data" / str(hs_user_id)
                 )
             else:
                 context.hs_user_app_db_path = (
-                    self.path_to_usesr_directory / "hs_data" / str(hs_user_id)
+                    self.path_to_user_directory / "hs_data" / str(hs_user_id)
                 )
             if request.url.path == "/":
-                # assert context.hs_user_app_db_path
-                # if this is the first request we clean all state
+                # If the user is coming to the root or reloading the page we'll assume 
+                # they don't want to use previous component values set by the user so we 
+                # clear them
                 self.clear_components()
-                self.run_user_script()
-
-            elif self._queue_user_script_rerun:
-                self.run_user_script()
+            if request.url.path == "/poll_root":
+                # If the user is coming to the root or reloading the page we'll assume 
+                # they don't want to use previous component values set by the user so we 
+                # clear them
+                self.clear_components()
 
             assert context.hs_user_app_db_path
             response = await call_next(request)
@@ -90,6 +93,28 @@ class Hstream(Components):
             return response
 
         return self.app
+
+    def list_css_frameworks(self):
+        """
+        Returns css framework names and urls for the users convenience - script used to generate files in css_frameworks.py
+
+        ```
+        from bs4 import BeautifulSoup
+        import requests
+        r = requests.get("https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/")
+        soup = BeautifulSoup(r.text)
+        table = soup.find('table')
+        rows = {}
+        base_url = "https://cdn.jsdelivr.net"
+        for i, row in enumerate(table.find_all('tr')):
+            rows[row.find('td').text.strip()] = base_url + row.find('a').get('href')
+        rows = rows[1:] # remove the table header
+        ```
+        """
+
+        from .css_frameworks import css_frameworks
+        return css_frameworks
+        
 
     def get_app_db_path(self):
         """
@@ -106,7 +131,7 @@ class Hstream(Components):
 
         if getattr(builtins, "hs_user_app_db_path", False):
             # running from inside user script and using the weirdly set builtins user_id
-            path = Path(self.path_to_usesr_directory / "hs_data" / hs_user_app_db_path)
+            path = Path(self.path_to_user_directory / "hs_data" / hs_user_app_db_path)
 
         else:
             # running from inside fastapi and using the user's context
@@ -116,8 +141,8 @@ class Hstream(Components):
                     "hs_user_app_db_path",  # get the hs_user_app_db_path attribute set on request based on user cookie
                     # for run's without a user (I think this just happen on the first run)
                     # there is no cookie and we just fail gracefully to a common db
-                    # this might not be nessecary and could maybe just go to /dev/null
-                    self.path_to_usesr_directory / "hs_data" / "main.db",
+                    # this might not be necessary and could maybe just go to /dev/null
+                    self.path_to_user_directory / "hs_data" / "main.db",
                 )
             )
             path.parent.mkdir(exist_ok=True)
@@ -128,19 +153,6 @@ class Hstream(Components):
     ):
         with shelve.open(self.get_app_db_path()) as app_db:
             return app_db.get("components", OrderedDict())
-
-    def get_html(
-        self,
-    ):
-        with shelve.open(self.get_app_db_path()) as app_db:
-            return app_db.get(f"html", "")
-
-    def write_html(
-        self,
-        html: str,
-    ):
-        with shelve.open(self.get_app_db_path()) as app_db:
-            app_db[f"html"] = html
 
     def write_components(
         self,
@@ -163,7 +175,9 @@ class Hstream(Components):
             assert context.hs_user_app_db_path
             return HTMLResponse(
                 environment.get_template("main.html").render(
-                    {"stylesheet": self.stylesheet_href}
+                    {
+                        "stylesheet": self.stylesheet_href,
+                    }
                 )
             )
 
@@ -176,8 +190,7 @@ class Hstream(Components):
             #
             # since we're starting with a blank page we won't need  a full page reload
             # if this isn't set we get full reload requests from the first user script run (because there are delta's)
-
-            html = self.get_html()
+            html = self.run_user_script()
             return HTMLResponse(html)
 
         @self.app.post("/value_changed/{component_key}")
@@ -215,7 +228,6 @@ class Hstream(Components):
             self.write_components(
                 components,
             )
-            self._queue_user_script_rerun = True
             response = HTMLResponse(
                 "success",
                 headers={
@@ -225,7 +237,6 @@ class Hstream(Components):
             return response
 
     def compile_user_code(self):
-        self._queue_user_script_rerun = False
         source_path = self.path_to_user_script
         with open(source_path) as f:
             filebody = f.read()
@@ -258,6 +269,10 @@ class Hstream(Components):
         )
 
     def run_user_script(self):
+        """
+        Runs the user script, (which fetches previous user values from shelve) 
+        and returns the html compiled during the run
+        """
         assert (
             context.hs_user_app_db_path
         )  # we always need the visitor's path before we execute the script so we know where to store the visitors components
@@ -265,9 +280,7 @@ class Hstream(Components):
         self.doc, self.tag, self.text = Doc().tagtext()
 
         self.compile_user_code()
-
-        with shelve.open(self.get_app_db_path()) as app_db:
-            app_db["html"] = self.doc.getvalue()
+        return self.doc.getvalue()
 
 
 from starlette.requests import Request
