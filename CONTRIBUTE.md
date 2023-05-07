@@ -1,9 +1,3 @@
-
-## Todo
-- move the `argsparse` in `hstream.py` to a click function
-- make `hstag` acceot attributes similiat to yattag
-
-
 ## Deploy
 
 1. increment version in `setup.py`
