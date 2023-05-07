@@ -4,6 +4,8 @@
 
 2. `rm -rf build/ hstream.egg-info/ dist/`
 
-3. `python -m build`
+3. `pip install twine build`
 
-4. `twine upload dist/*`
+4. `python -m build`
+
+5. `twine upload dist/*`

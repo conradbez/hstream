@@ -5,9 +5,9 @@ hs.slider('test', minValue=1, maxValue=2, default_value=1, key='sliderinput12')
 
 t = hs.text_input("test", '', )
 hs.markdown(sliderinput1)
-# hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/a11yana.css"
-# # hs.stylesheet_href = hs.list_css_frameworks()["bahunya.css"]
-# # with hs.html('script',
+hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/a11yana.css"
+# hs.stylesheet_href = hs.list_css_frameworks()["bahunya.css"]
+# with hs.html('script',
 # #             ('src', "https://dohliam.github.io/dropin-minimal-css/switcher.js"),
 # #             ('type', "text/javascript"),
 # #              ):

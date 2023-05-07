@@ -10,6 +10,8 @@ import os
 from yattag import Doc
 from .components import Components
 from jinja2 import Environment, FileSystemLoader
+from fastapi.templating import Jinja2Templates
+
 
 # Vocab
 # User: Person using this library to build web apps
@@ -29,8 +31,7 @@ from jinja2 import Environment, FileSystemLoader
 # - On code changes during local development uvicorn handles reload
 # - Nav is dynamically moved out of main content area with hyperscript
 templates_path = Path(__file__).parent / "templates"
-
-environment = Environment(loader=FileSystemLoader(templates_path))
+templates = Jinja2Templates(directory=templates_path)
 
 class Hstream(Components):
     def __init__(self, development_mode = True):
@@ -173,13 +174,10 @@ class Hstream(Components):
             response: Response,
         ):
             assert context.hs_user_app_db_path
-            return HTMLResponse(
-                environment.get_template("main.html").render(
-                    {
-                        "stylesheet": self.stylesheet_href,
-                    }
-                )
-            )
+            return templates.TemplateResponse("main.html", {
+                    "request": request,
+                     "stylesheet": self.stylesheet_href,
+                    })
 
         @self.app.get("/content", response_class=HTMLResponse)
         async def content(
