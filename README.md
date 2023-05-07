@@ -20,6 +20,11 @@ hs.markdown(f"Welcome {visitor_name}")
 
 ![hstream demo](docs/hello_hstream.png)
 
+
+# Examples
+
+- [Static files](./demo/static_files.md)
+- [Theming](./demo/theming.md)
 # Motivation
 
 Love Streamlit but:
