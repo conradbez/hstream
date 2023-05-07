@@ -1,19 +1,19 @@
 from hstream import hs
+from fastapi.staticfiles import StaticFiles
 
 sliderinput1 = hs.slider('test', minValue=1, maxValue=100, default_value=5, key='sliderinput1')
 hs.slider('test', minValue=1, maxValue=2, default_value=1, key='sliderinput12')
 
 t = hs.text_input("test", '', )
 hs.markdown(sliderinput1)
-hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/a11yana.css"
+# hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/a11yana.css"
 # hs.stylesheet_href = hs.list_css_frameworks()["bahunya.css"]
-# with hs.html('script',
-# #             ('src', "https://dohliam.github.io/dropin-minimal-css/switcher.js"),
-# #             ('type', "text/javascript"),
-# #              ):
-# #     pass
-# page = hs.nav(["Home", "Cards", "Graph"], "Home", key="nav")
-
+hs.doc.stag('script',
+            ('src', "https://dohliam.github.io/dropin-minimal-css/switcher.js"),
+            ('type', "text/javascript"),
+             )
+page = hs.nav(["Home", "Cards", "Graph"], "Home", key="nav")
+hs.app.mount("/static", StaticFiles(directory="static"), name="static")
 # with hs.html("header"):
 #     hs.markdown(
 #         f"## HStream {2+2}",
@@ -58,14 +58,14 @@ hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src
 # #     hs.markdown("Please enter your name")
 # # name = hs.text_input('Name', '', key = 'test')
 
-
-# # import matplotlib.pyplot as plt
-# # import numpy as np
-# # x = np.arange(0,4*np.pi,0.1)   # start,stop,step
-# # y = np.sin(x) * float(1)
-# # fig, ax = plt.subplots()
-# # ax.plot(x,y)
-# # hs.pyplot(fig, key='myplot')
+# with hs.html('section'):
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.arange(0,4*np.pi,0.1)   # start,stop,step
+y = np.sin(x) * float(1)
+fig, ax = plt.subplots()
+ax.plot(x,y)
+hs.pyplot(fig, key='myplot')
 
 
 

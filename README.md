@@ -1,5 +1,3 @@
-
-
 # HStream
 
 Easiest interactive python web app using htmx and semantic html
@@ -34,15 +32,17 @@ H-(html)-Stream is built with semantic html, FastApi and htmx to provide a fast 
 
 # Features
 
-- [x] only reloads changed components after the visitor provides input
 - [x] live server reload on file change (through univorn)
 - [x] semantic html and basic html manipulation from within script
 - [x] basic components - see below
 - [x] swap stylesheet
 - [x] complex html manipulation from within script (setting attributes)
+- [x] plotly plot support
+- [x] select component
+- [ ] multi select component
 - [ ] auto ssl certs for easy deployment
-- [ ] plotly plot support
-- [ ] select and multi select components
+- [ ] example component architecture
+- [ ] reload browser on code change
 
 # Bugs
 
@@ -64,9 +64,7 @@ H-(html)-Stream is built with semantic html, FastApi and htmx to provide a fast 
 
 `hs.image`: display an image
 
-`hs.html`: allows more complex formatting, for example 
-
-Form example:
+`hs.html`: allows more complex formatting, for example:
 
 - a html form
 
