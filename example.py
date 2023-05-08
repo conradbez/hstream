@@ -1,71 +1,73 @@
 from hstream import hs
 from fastapi.staticfiles import StaticFiles
 
-sliderinput1 = hs.slider('test', minValue=1, maxValue=100, default_value=5, key='sliderinput1')
-hs.slider('test', minValue=1, maxValue=2, default_value=1, key='sliderinput12')
+# hs.stylesheet_href = hs.list_css_frameworks()["bare.css"]
 
-t = hs.text_input("test", '', )
-hs.markdown(sliderinput1)
-# hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/a11yana.css"
-# hs.stylesheet_href = hs.list_css_frameworks()["bahunya.css"]
-hs.doc.stag('script',
-            ('src', "https://dohliam.github.io/dropin-minimal-css/switcher.js"),
-            ('type', "text/javascript"),
-             )
-page = hs.nav(["Home", "Cards", "Graph"], "Home", key="nav")
+page = hs.nav(["Home", "About"], "Home", key="nav")
 hs.app.mount("/static", StaticFiles(directory="static"), name="static")
-# with hs.html("header"):
-#     hs.markdown(
-#         f"## HStream {2+2}",
-#     )
+with hs.html("header"):
+    hs.markdown(
+        f"""## HStream
+        Offers great flexibility in developing Python web apps easily 
+        """,
+    )
 
-# # with hs.html("section"):
-# #     with hs.html("aside"):
-# #         hs.markdown(
-# #             f"## First aside {1}",
-# #         )
+with hs.html("section"):
+    with hs.html("aside"):
+        hs.markdown(
+            f"Simply write python scripts and instead of print use `hs.markdown` to built web outputs",
+        )
 
-# #     with hs.html("aside"):
-# #         hs.markdown(
-# #             f"## Second aside {1+1}",
-# #         )
+    with hs.html("aside"):
+        hs.markdown(
+            f"User inputs are as simple as `user_value = hs.text_input('Please input your text')`",
+        )
 
-# #     with hs.html("aside"):
-# #         hs.markdown(
-# #             f"## Third aside {1+2}",
-# #         )
+    with hs.html("aside"):
+        hs.markdown(
+            f"Run with classic web technologies means you can easily customize your app once you need to without rewriting everything",
+        )
 
-# # hs.markdown("Make htmx website creation easy")
+hs.markdown(f"""
+#Make htmx website creation easy
+Simply write `hs.markdown(2+2)` to get {2+2}
+""" 
+)
 
-# # hs.markdown(f"simply write `hs.markdown(2+2)` to get {2+2}" )
 
-# # with hs.html('form'):
-# #     user_number = hs.number_input(
-# #             "Input a number",
-# #             default_value = 0,
-# #         )
+hs.markdown(f"""Or create forms like:""")
+with hs.html('form'):
+    user_number = hs.number_input(
+            "Input a number",
+            default_value = 0,
+        )
+    hs.markdown(f"Your number is {'*even*' if user_number % 2 == 0 else '*false*'}")
+with hs.html('header'):
+    hs.markdown("## HStream also supports displaying plots")
+with hs.html('section'):
+    hs.markdown("""
+    `import matplotlib.pyplot as plt`
 
-# # hs.markdown(f"test number output {user_number}")
+    `import numpy as np`
 
-# # hs.markdown(f"and multiply {user_number} by 2 to get {int(user_number)*2}", )
+    `x = np.arange(0,4*np.pi,0.1)   # start,stop,step`
 
-# # with hs.html('header'):
-# #     with hs.html('h1'):
-# #         hs.markdown("This is h1")
-# #     hs.markdown("This is not a h1 but still a header")
+    `y = np.sin(x) * float(1)`
 
-# # with hs.html('form'):
-# #     hs.markdown("Please enter your name")
-# # name = hs.text_input('Name', '', key = 'test')
+    `fig, ax = plt.subplots()`
 
-# with hs.html('section'):
-import matplotlib.pyplot as plt
-import numpy as np
-x = np.arange(0,4*np.pi,0.1)   # start,stop,step
-y = np.sin(x) * float(1)
-fig, ax = plt.subplots()
-ax.plot(x,y)
-hs.pyplot(fig, key='myplot')
+    `ax.plot(x,y)`
+
+    `hs.pyplot(fig, key='myplot')`
+    """)
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+    x = np.arange(0,4*np.pi,0.1)   # start,stop,step
+    y = np.sin(x) * float(1)
+    fig, ax = plt.subplots()
+    ax.plot(x,y)
+    hs.pyplot(fig, key='myplot')
 
 
 
