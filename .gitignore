@@ -7,3 +7,4 @@ hyperstream/__pycache__*
 hs_data/
 .DS_Store
 dist
+*hstream.egg-info*

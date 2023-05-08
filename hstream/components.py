@@ -133,9 +133,20 @@ class Components:
     def select_box(
         self, label: List[str], default_value: str = False, key: str = None, **kwargs
     ) -> str:
+        """
+        Dropdown component for user to select from a list of options
+
+        Args:
+            label (List[str]): Options to display to user
+            default_value (str, optional): Value to select when component load the first time. Defaults to False.
+            key (str, optional): Unique key - default is set based on label (options) so set this if there are multiple inputs with same label argument. Defaults to None.
+
+        Returns:
+            str: Selected value
+        """
+        # HStream developer note: The default value logic is handled by the `@component_wrapper`
         with self.doc.select(
             ("name", key),
-            # ("value", str(kwargs["value"])),
             ("hx-post", f"/value_changed/{key}"),
         ):
             for value in label:

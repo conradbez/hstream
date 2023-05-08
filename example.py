@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 # hs.stylesheet_href = hs.list_css_frameworks()["bare.css"]
 
 page = hs.nav(["Home", "About"], "Home", key="nav")
-hs.app.mount("/static", StaticFiles(directory="static"), name="static")
+
 with hs.html("header"):
     hs.markdown(
         f"""## HStream
