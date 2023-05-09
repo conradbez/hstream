@@ -18,11 +18,15 @@ hs.markdown(f"Welcome {visitor_name}")
 
 `python -m hstream main.py`
 
-![hstream demo](docs/hello_hstream.png)
+![hstream demo](./demo/hello_hstream.png)
+
+or here's a fuller example [example](./demo/example.py)
+
+![hstream demo](./demo/example_demo.gif)
 
 
 # Examples
-
+- [Select demo](./demo/select.md)
 - [Static files](./demo/static_files.md)
 - [Theming](./demo/theming.md)
 - [More](./demo)
