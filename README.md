@@ -25,6 +25,7 @@ hs.markdown(f"Welcome {visitor_name}")
 
 - [Static files](./demo/static_files.md)
 - [Theming](./demo/theming.md)
+- [More](./demo)
 # Motivation
 
 Love Streamlit but:

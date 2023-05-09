@@ -68,6 +68,3 @@ with hs.html('section'):
     fig, ax = plt.subplots()
     ax.plot(x,y)
     hs.pyplot(fig, key='myplot')
-
-
-
