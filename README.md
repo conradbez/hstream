@@ -20,7 +20,7 @@ hs.markdown(f"Welcome {visitor_name}")
 
 ![hstream demo](./demo/hello_hstream.png)
 
-or here's a fuller example [example](./demo/example.py)
+or here's a fuller [example](./demo/example.py)
 
 ![hstream demo](./demo/example_demo.gif)
 
