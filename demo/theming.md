@@ -26,3 +26,8 @@ After you select a theme simple remove the above and include the theme in your a
 `hs.stylesheet_href = "https://cdn.jsdelivr.net/gh/dohliam/dropin-minimal-css/src/bahunya.css"`
 or
 `hs.stylesheet_href = hs.list_css_frameworks()["bahunya.css"]`
+
+
+# Flexible styling
+
+![Demo of custom css styling](./custom_styling_screenshot.png "Styling with custom CSS")
