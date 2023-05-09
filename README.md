@@ -44,7 +44,7 @@ H-(html)-Stream is built with semantic html, FastApi and htmx to provide a fast 
 - [x] complex html manipulation from within script (setting attributes)
 - [x] plotly plot support
 - [x] select component
-- [ ] multi select component
+- [x] multi select component
 - [ ] auto ssl certs for easy deployment
 - [ ] example component architecture
 - [ ] reload browser on code change
