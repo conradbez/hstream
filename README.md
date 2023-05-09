@@ -110,6 +110,7 @@ Big thanks to the following libraries in particular
 - Streamlit
 - htmx
 - Yattag
+- pico css
 - MVP.css
 - FastAPI
 - uvicorn

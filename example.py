@@ -1,7 +1,7 @@
 from hstream import hs
 from fastapi.staticfiles import StaticFiles
 
-hs.stylesheet_href = hs.list_css_frameworks()["bare.css"]
+# hs.stylesheet_href = hs.list_css_frameworks()["pico.css"]
 
 page = hs.nav(["Home", "About"], "Home", key="nav")
 

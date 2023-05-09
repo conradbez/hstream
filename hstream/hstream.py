@@ -46,7 +46,7 @@ class Hstream(Components):
 
         # on init we start fresh
         self.clear_components()
-        self.stylesheet_href = "https://unpkg.com/mvp.css@1.12/mvp.css"
+        self.stylesheet_href = "https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
         self.doc, self.tag, self.text = Doc().tagtext()
 
     def __call__(self):

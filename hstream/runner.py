@@ -22,7 +22,5 @@ def run(user_filename, port, host):
         reload_dirs=[os.getcwd()],
     )
 
-
-
 if __name__ == "__main__":
     run()

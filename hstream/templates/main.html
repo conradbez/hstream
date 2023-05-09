@@ -11,10 +11,11 @@
       },true);
       window.addEventListener('keydown',function(e){if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13){if(e.target.nodeName=='INPUT'){console.log("enter blocked so page doesn't reload");return false;}}},true);
     </script>
-  <div id='hs-nav'>
+      <nav class="container">
+        <div id='hs-nav'></div>
+      </nav>
 
-  </div>
-  <main>
+  <main class="container">
     <div id="hs-content" hx-get="/content" hx-trigger="load,update_content_event from:body" hx-swap="morph">
     </div>
   </main>
