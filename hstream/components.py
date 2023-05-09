@@ -157,6 +157,57 @@ class Components:
                 ):
                     self.text(str(value))
 
+
+    @component_wrapper
+    def multiselect(
+        self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
+    ) -> List[int]:
+        """
+        Dropdown component for user to select multiple options from a list and returns a comma separated string of the  of selected options
+
+        Args:
+            label (List[str]): Options to display to user
+            default_value (str, optional): Value to select when component load the first time. Defaults to False.
+            key (str, optional): Unique key - default is set based on label (options) so set this if there are multiple inputs with same label argument. Defaults to None.
+
+        Returns:
+            str: Selected value
+        """
+        
+        assert type(label)==type([]) and type(default_value)==type([]), "multiselect requires a list of options and a list of default values"
+
+        # HStream developer note: The default value logic is handled by the `@component_wrapper`
+        js_to_get_all_select_values = f"""
+        Array.from(document.querySelectorAll('#{key} option:checked')).map(el => el.value).toString()
+            """
+        if type(kwargs["value"]) == type(""):
+            # the frontend returns the value as a string of comma seperated values
+            currently_selected_values = kwargs["value"].split(',')
+        elif type(kwargs["value"]) == type([]):
+            currently_selected_values = kwargs["value"]
+        else:
+            raise "multi select current value seems corrupted"
+
+        with self.doc.select(
+            ("name", key),
+            ('id', key),
+            ("hx-post", f"/value_changed/{key}"),
+            ("multiple", ""),
+            # transform the multiselect value into a list of selected indexes like "1,2,7"
+            ("hx-vals", "js:{"+key+" : "+js_to_get_all_select_values+"}"),
+            ("hx-trigger", "focusout")
+        ):
+            print(kwargs["value"])
+            for value in label:
+                assert not "," in value, "multiselect options can't contain commas"
+                with self.tag(
+                    "option",
+                    ("value", value),
+                    ("selected", "") if value in currently_selected_values else ('','')
+                ):
+                    self.text(value)
+
+
     @component_wrapper
     def slider(
         self,

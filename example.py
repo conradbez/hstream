@@ -1,14 +1,14 @@
 from hstream import hs
 from fastapi.staticfiles import StaticFiles
 
-# hs.stylesheet_href = hs.list_css_frameworks()["bare.css"]
+hs.stylesheet_href = hs.list_css_frameworks()["bare.css"]
 
 page = hs.nav(["Home", "About"], "Home", key="nav")
 
 with hs.html("header"):
     hs.markdown(
         f"""## HStream
-        Offers great flexibility in developing Python web apps easily 
+        Offers great flexibility in developing Python web apps easily
         """,
     )
 
