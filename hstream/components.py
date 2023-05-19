@@ -153,8 +153,10 @@ class Components:
                 with self.tag(
                     "option",
                     ("value", value),
-                    ("selected", "") if kwargs["value"] == value else ('','')
                 ):
+                    if kwargs["value"] == value:
+                        self.doc.attr(selected='')
+
                     self.text(str(value))
 
 
@@ -197,16 +199,82 @@ class Components:
             ("hx-vals", "js:{"+key+" : "+js_to_get_all_select_values+"}"),
             ("hx-trigger", "focusout")
         ):
-            print(kwargs["value"])
             for value in label:
                 assert not "," in value, "multiselect options can't contain commas"
                 with self.tag(
                     "option",
                     ("value", value),
-                    ("selected", "") if value in currently_selected_values else ('','')
+                    ("selected", "") if value in currently_selected_values else ''
                 ):
                     self.text(value)
 
+    # @component_wrapper
+    # def dropdown(
+    #     self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
+    # ) -> List[int]:
+    #     js_to_get_all_select_values = f"""
+    #     extractCheckedCheckboxValues("#{key}.map(el => el.value).toString()
+    #         """
+    #     js_to_get_all_select_values = f"""console.log('hi')"""
+        
+    #     with self.tag('script', 
+    #                   ('type', 'text/javascript'),
+    #                   ):
+    #         self.doc.asis("""
+    #         function extractCheckedCheckboxValues(elementId) {
+    #             const element = document.getElementById(elementId);
+                
+    #             if (!element) {
+    #                 console.error(`Element with ID '${elementId}' not found.`);
+    #                 return [];
+    #             }
+                
+    #             const checkboxes = element.querySelectorAll('input[type="checkbox"]:checked');
+    #             const values = Array.from(checkboxes).map((checkbox) => checkbox.value);
+                
+    #             return values;
+    #             }
+    #         """)
+
+    #     if type(kwargs['value']) == type([]):
+    #         value = kwargs['value']
+    #     elif type(kwargs['value']) == type(""):
+    #         value = kwargs['value'].split(',')
+    #     else:
+    #         value =  kwargs['value']
+
+    #     with self.tag('details', 
+    #             ('role','list'),
+    #             ('key', key),
+    #             ('id', key),
+    #             # ('onfocus', f'(e) => console.log(extractCheckedCheckboxValues("{key}"))'),
+    #             # ("hx-trigger", f"click from:#{key}-submit"),
+    #             ("hx-post", f"/value_changed/{key}"),
+    #             ("hx-vals", "js:{"+key+" : "+f'extractCheckedCheckboxValues("{key}")'+"}"),
+    #             ("hx-trigger", f"revealed from:#{key}-dropdown-option"),
+    #             ):
+    #         with self.tag('summary', ('aria-haspopup','listbox')):
+    #             self.text('Dropdown')
+    #         with self.tag('ul', 
+                        
+    #                     ('role','listbox'),
+    #                     ):
+    #             with self.tag('li'):
+    #                 for option in label:
+    #                     with self.tag('label'):
+    #                         self.doc.input(
+    #                             ('id', f'{key}-dropdown-option'),
+    #                             ('name', 'option') ,
+    #                             ('type','checkbox'),
+    #                             ('value', option),
+    #                             ('checked' if option in value else '', ''),
+    #                         )
+    #                         self.text(option)
+    #     with self.tag("button",
+    #                   ('onclick', f'console.log(extractCheckedCheckboxValues("{key}"))'),
+    #                   ('id',f"{key}-submit"),
+    #                   ):
+    #         self.text('done')
 
     @component_wrapper
     def slider(
@@ -224,6 +292,7 @@ class Components:
         with self.tag(
             "input",
             ("name", key),
+            ("id", key),
             ("type", "range"),
             ("value", str(kwargs["value"])),
             ("min", minValue),
@@ -356,7 +425,6 @@ class Components:
         **kwargs,
     ) -> str:
         """ """
-        print("{" + key + ":'true'}")
         with self.tag(
             "button",
             ("id", key),
