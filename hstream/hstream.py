@@ -235,6 +235,7 @@ class Hstream(Components):
             return response
 
     def compile_user_code(self):
+
         source_path = self.path_to_user_script
         with open(source_path) as f:
             filebody = f.read()
