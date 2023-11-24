@@ -1,10 +1,13 @@
-from yattag import Doc
 from yattag.simpledoc import SimpleDoc
+from yattag import Doc
 from typing import List, Literal, OrderedDict
 from functools import wraps
 from pathlib import Path
 from inspect import getframeinfo, stack
-
+import base64 
+from base64 import b64encode
+import io
+import imghdr
 
 class Components:
     def get_key_based_on_call(self, message):
@@ -69,7 +72,7 @@ class Components:
         return wrapped_component_function
 
     @component_wrapper
-    def markdown(self, text: str, key: str = False, **kwargs) -> None:
+    def markdown(self, text: str, *, key: str = False, **kwargs) -> None:
         import markdown
 
         html = markdown.markdown(str(text))
@@ -80,7 +83,7 @@ class Components:
 
     @component_wrapper
     def text_input(
-        self, label: str, default_value: str = "", key: str = None, **kwargs
+        self, label: str, *, default_value: str = "", key: str = None, **kwargs
     ) -> str:
         """Displays text input for user to input text
 
@@ -108,7 +111,7 @@ class Components:
 
     @component_wrapper
     def number_input(
-        self, label: str, default_value: int = 0, key: str = None, **kwargs
+        self, label: str, *, default_value: int = 0, key: str = None, **kwargs
     ) -> str:
         """Displays text input for user to input text
         Args:
@@ -131,7 +134,7 @@ class Components:
 
     @component_wrapper
     def select_box(
-        self, label: List[str], default_value: str = False, key: str = None, **kwargs
+        self, label: List[str], *, default_value: str = False, key: str = None, **kwargs
     ) -> str:
         """
         Dropdown component for user to select from a list of options
@@ -162,7 +165,7 @@ class Components:
 
     @component_wrapper
     def multiselect(
-        self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
+        self, label: List[str], *, default_value: List[int] = [], key: str = None, **kwargs
     ) -> List[int]:
         """
         Dropdown component for user to select multiple options from a list and returns a comma separated string of the  of selected options
@@ -175,7 +178,7 @@ class Components:
         Returns:
             str: Selected value
         """
-        
+
         assert type(label)==type([]) and type(default_value)==type([]), "multiselect requires a list of options and a list of default values"
 
         # HStream developer note: The default value logic is handled by the `@component_wrapper`
@@ -280,6 +283,7 @@ class Components:
     def slider(
         self,
         label: str,
+        *,
         minValue: int,
         maxValue: int,
         default_value: int,
@@ -305,7 +309,10 @@ class Components:
     def nav(
         self,
         label: List[str],
-        default_value,
+        *,
+        logo_file: Path = False,
+        height='40px',
+        default_value=None,
         key,
         **kwargs,
     ):
@@ -331,8 +338,14 @@ class Components:
         ):
             with self.tag(
                 "nav",
+                height=height
             ):
                 with self.tag("ul"):
+                    if logo_file:
+                        encoded_image = b64encode(logo_file.read()).decode()
+                        with self.tag("img", src = f"data:image/jpeg;base64,{encoded_image}",  style = f"max-height: {height}; width: auto;"):
+                            pass
+
                     for item in label:
                         color = "grey" if kwargs["value"] == item else ""
                         with self.tag(
@@ -367,9 +380,6 @@ class Components:
             hs.pyplot(fig, key='myplot')
         """
 
-        from base64 import b64encode
-        import io
-
         stringIObytes = io.BytesIO()
         fig.savefig(stringIObytes, format="png")
         stringIObytes.seek(0)
@@ -391,6 +401,7 @@ class Components:
     def checkbox(
         self,
         label: str,
+        *,
         default_value: bool = False,
         key: str = None,
         **kwargs,
@@ -420,6 +431,7 @@ class Components:
     def button(
         self,
         label: str,
+        *,
         default_value: bool = False,
         key: str = None,
         **kwargs,
@@ -434,3 +446,31 @@ class Components:
             ("hx-swap", "none"),
         ):
             self.text(label)
+
+    @component_wrapper
+    def image(self, src, alt: str = "", height: str = None, width: str = None, key: str = None, **kwargs) -> None:
+        """
+        Displays an image on the web interface. Accepts a URL or a file object as the source.
+
+        Args:
+            src (str or file-like object): The source of the image. Can be a URL string or a file-like object.
+            alt (str, optional): Alternative text for the image, for accessibility. Defaults to an empty string.
+            height (str, optional): Height of the image. Can be specified in pixels or any other CSS unit. Defaults to None.
+            width (str, optional): Width of the image. Can be specified in pixels or any other CSS unit. Defaults to None.
+            key (str, optional): Unique key for the component. Defaults to None.
+        """
+        img_attrs = {"alt": alt}
+        if height:
+            img_attrs["height"] = height
+        if width:
+            img_attrs["width"] = width
+
+        if isinstance(src, str):
+            img_attrs["src"] = src
+        else:
+            # Assuming src is a file-like object
+            encoded_image = b64encode(src.read()).decode()
+            img_attrs["src"] = f"data:image/jpeg;base64,{encoded_image}"
+
+        with self.tag("img", **img_attrs):
+            pass

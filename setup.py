@@ -11,7 +11,7 @@ setup(
     version="0.0.20",
     author="Conrad Bezuidenhout",
     author_email="conradbez1@gmail.com",
-    description=("Create python webapps with ease"),
+    description=("Create python web apps with ease"),
     license="BSD",
     license_files = ["LICENSE"],
     keywords="streamlit htmx fastapi",

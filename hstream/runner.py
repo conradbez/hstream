@@ -14,7 +14,7 @@ from pathlib import Path
 def run(user_filename, port, host):
     user_file_path = os.getcwd() / Path(user_filename)
     # lets convert the user input to folder1.folder2.filename:hs
-
+    assert os.path.exists(user_file_path), f"ERROR: could not find {user_filename}"
     if Path(user_filename).parent == Path("."):
         # if we're in the same folder as the file, we use this format
         uvicorn_style_path_to_file = user_file_path.stem+':hs'# we're already speciffying the folder in the app_dir below
@@ -22,7 +22,7 @@ def run(user_filename, port, host):
     else:
         # if the users folder is in a nested directory, we use this format
         uvicorn_style_path_to_file = str(Path(user_filename).parent).replace("/", ".") + '.'+user_file_path.stem+':hs'
-    
+
     print(f"activating app: {uvicorn_style_path_to_file}")
     uvicorn.run(
         uvicorn_style_path_to_file,

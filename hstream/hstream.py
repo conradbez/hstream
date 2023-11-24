@@ -19,7 +19,7 @@ from fastapi.templating import Jinja2Templates
 # Component: HStream element that displays an output to the visitor based on user scipt (i.e. hs.write)
 # and optionally takes and input from the visitor, feeding it back to the user's script (i.e. hs.text_input)
 
-# Flow of StreamHTML
+# Flow of hstream
 # - Visitor loads `/` and assigned a unique id
 # - User script runs, with hs.* components returning defaults and building html
 # - Content is loaded with html morph into the visitors browser
@@ -28,8 +28,10 @@ from fastapi.templating import Jinja2Templates
 # - html is served and htmx's morph inserts updated html
 #
 # Considerations
+# - Funky injections at `compile_user_code` you should look at
 # - On code changes during local development uvicorn handles reload
 # - Nav is dynamically moved out of main content area with hyperscript
+
 templates_path = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=templates_path)
 
@@ -46,7 +48,8 @@ class Hstream(Components):
 
         # on init we start fresh
         self.clear_components()
-        self.stylesheet_href = "https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+        # self.stylesheet_href = "https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+        self.stylesheet_href = "https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.0-alpha1"
         self.doc, self.tag, self.text = Doc().tagtext()
 
     def __call__(self):
@@ -115,7 +118,7 @@ class Hstream(Components):
 
         from .css_frameworks import css_frameworks
         return css_frameworks
-        
+
 
     def get_app_db_path(self):
         """
