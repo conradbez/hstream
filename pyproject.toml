@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hstream"
+dynamic = ["version"]
+description = "Create python web apps with ease"
+readme = "README.md"
+license = "BSD"
+authors = [
+    { name = "Conrad Bezuidenhout", email = "conradbez1@gmail.com" },
+]
+keywords = [
+    "fastapi",
+    "htmx",
+    "streamlit",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "fastapi~=0.85",
+    "Jinja2~=3.1",
+    "Markdown~=3.4",
+    "matplotlib",
+    "python-multipart",
+    "starlette_context==0.3.4",
+    "uvicorn~=0.19",
+    "watchfiles~=0.18",
+    "yattag~=1.14",
+]
+
+[project.scripts]
+hstream = "hstream.runner:run"
+
+[project.urls]
+Homepage = "https://github.com/conradbez/hstream"
+
+[tool.hatch.version]
+path = "hstream/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/hstream",
+]
