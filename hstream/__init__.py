@@ -1,1 +1,3 @@
-from .hstream import hs
+from hstream.hs import hs as hstream
+
+hs = hstream()

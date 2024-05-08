@@ -1,6 +1,7 @@
 from hstream import hs
 
-hs.markdown(f"""
+hs.markdown(
+    f"""
 # We're very flexible with styling, should you need it to fine tune your app post MVP
 
 Here's an example of a slider with custom styling 
@@ -9,9 +10,11 @@ Here's an example of a slider with custom styling
 
 - set width to 50% of the page
 
-""")
+"""
+)
 
-hs.markdown("""
+hs.markdown(
+    """
 
     with hs.doc.tag("center",):
 
@@ -20,9 +23,15 @@ hs.markdown("""
             hs.slider("Pick a value", 0,100, 50)
 
 
-""")
+"""
+)
 hs.stylesheet_href = hs.list_css_frameworks()["pico.css"]
 
-with hs.doc.tag("center",):
-    with hs.html('div',('style', "width: 50%;"),):
-        hs.slider("Pick a value", 0,100, 50)
+with hs.doc.tag(
+    "center",
+):
+    with hs.html(
+        "div",
+        ("style", "width: 50%;"),
+    ):
+        hs.slider("Pick a value", 0, 100, 50)

@@ -1,12 +1,45 @@
-from yattag import Doc
-from yattag.simpledoc import SimpleDoc
-from typing import List, Literal, OrderedDict
+from typing import List
 from functools import wraps
 from pathlib import Path
 from inspect import getframeinfo, stack
+import cherrypy
 
 
-class Components:
+def component_wrapper(component_fucntion):
+    @wraps(component_fucntion)
+    def wrapped_component_function(self, *method_args, **method_kwargs):
+        # if we arn't provided a key let make one
+        key = method_kwargs.get("key", False)
+        if not key:
+            key = self.get_key_based_on_call(method_args)
+            method_kwargs["key"] = key
+        value = self.component_value(
+            default_value=method_kwargs.get("default_value", None),
+            key=method_kwargs["key"],
+        )
+        method_kwargs["value"] = value
+        with self.tag(
+            "div",
+            ("id", f"container_for_{method_kwargs['key']}"),
+            ("hx-trigger", f"none"),
+        ):
+            # each component should return a function that formats the user value stored in the session
+            # after sent back by htmx
+            user_input_formatting_fn = component_fucntion(
+                self, *method_args, **method_kwargs
+            )
+        # if there is no current value let subsitute the default value
+
+        if user_input_formatting_fn != None:
+            return user_input_formatting_fn(value)
+        else:
+            # temporary while we get all components to return a function
+            return value
+
+    return wrapped_component_function
+
+
+class ComponentsGeneric:
     def get_key_based_on_call(self, message):
         """
         Get the concat the functions call line and arguments to get a key
@@ -14,13 +47,14 @@ class Components:
         * Gothca * : loop will be on the same line and therefor get the same key,
                      we need the user to specify a key in that case
                      this case is not checked for atm
-
         """
         for i in range(20):
-            caller = getframeinfo(stack()[i][0])
-            if str(self.path_to_user_script) in caller.filename:
-                # breakpoint()
-                call_signiture = f"{Path(caller.filename).stem}, {caller.lineno}"
+            # import ipdb; ipdb.set_trace()
+            inspect_caller = getframeinfo(stack()[i][0])
+            if "HS_STREAM_USER_FILE" in inspect_caller.filename:
+                call_signiture = (
+                    f"{Path(inspect_caller.filename).stem}, {inspect_caller.lineno}"
+                )
                 key = "".join(x for x in call_signiture if x.isalpha() or x.isnumeric())
                 return key
 
@@ -28,50 +62,18 @@ class Components:
         """Writes a component to the SH front end
 
         Args:
-            label (_type_, optional): Must be ubique within the app. Content to write to the web front end. Defaults to None.
+            label (_type_, optional): Must be unique within the app. Content to write to the web front end. Defaults to None.
             default_value (_type_, optional): default value the component returns before use enters value - will always be null for text or component where user doesn't input. Defaults to None.
         """
+        return cherrypy.session.get(key, default_value)
 
-        # to support user's use of `with hs.tag` we first need to exit out of the context manager
-        # while 'yattag.simpledoc.SimpleDoc.DocumentRoot' not in str(type(self.doc.current_tag)):
 
-        assert (
-            not "_" in key
-        ), f"please don't use underscores in keys, found in {key}"  # we use headers to update compoennts by key but headers don't like underscores
-        components = self.get_components()
-        return components.get(key, default_value)
-
-    def component_wrapper(component_fucntion):
-        @wraps(component_fucntion)
-        def wrapped_component_function(self, *method_args, **method_kwargs):
-            # if we arn't provided a key let make one
-            key = method_kwargs.get("key", False)
-            if not key:
-                key = self.get_key_based_on_call(method_args)
-                method_kwargs["key"] = key
-            value = self.component_value(
-                default_value=method_kwargs.get("default_value", None),
-                key=method_kwargs["key"],
-            )
-            method_kwargs["value"] = value
-            with self.tag(
-                "div",
-                ("id", method_kwargs["key"]),
-                # ("hx-get",f"/content/{key}"),
-                ("hx-trigger", f"none"),
-                # ('hx-swap', "morph"),
-            ):
-                component_fucntion(self, *method_args, **method_kwargs)
-            # if there is no current value let subsitute the default value
-
-            return value
-
-        return wrapped_component_function
-
+class Components(ComponentsGeneric):
     @component_wrapper
     def markdown(self, text: str, key: str = False, **kwargs) -> None:
         import markdown
 
+        # import ipdb; ipdb.set_trace()
         html = markdown.markdown(str(text))
         with self.tag(
             "div",
@@ -80,7 +82,12 @@ class Components:
 
     @component_wrapper
     def text_input(
-        self, label: str, default_value: str = "", key: str = None, **kwargs
+        self,
+        label: str,
+        default_value: str = "",
+        key: str = None,
+        placeholder: str = False,
+        **kwargs,
     ) -> str:
         """Displays text input for user to input text
 
@@ -90,18 +97,21 @@ class Components:
         Returns:
             str: text inputted by user
         """
-        component_attr = self.get_components().get(key, OrderedDict())
         with self.tag("label"):
             self.text(label)
         with self.tag(
             "input",
-            ("name", key),
-            ("hx-post", f"/value_changed/{key}"),
+            ("hx-ext", "debug"),
+            ("name", "new_value"),
+            ("hx-post", f"/set_component_value?component_id={key}"),
             ("hx-swap", "none"),
             ("type", "text"),
-            ("value", str(kwargs["value"])),
         ):
-            pass
+            if kwargs["value"]:
+                self.doc.attr(value=str(kwargs["value"]))
+            elif placeholder:
+                self.doc.attr(placeholder=placeholder)
+        return lambda x: str(x)
 
     def html(self, *args, **kwargs):
         return self.tag(*args, **kwargs)
@@ -121,8 +131,8 @@ class Components:
             self.text(label)
         with self.tag(
             "input",
-            ("name", key),
-            ("hx-post", f"/value_changed/{key}"),
+            ("name", "new_value"),
+            ("hx-post", f"/set_component_value?component_id={key}"),
             ("hx-trigger", "focusout"),
             ("type", "number"),
             ("value", str(kwargs["value"])),
@@ -131,7 +141,7 @@ class Components:
 
     @component_wrapper
     def select_box(
-        self, label: List[str], default_value: str = False, key: str = None, **kwargs
+        self, label: List[str], default_value: str = None, key: str = None, **kwargs
     ) -> str:
         """
         Dropdown component for user to select from a list of options
@@ -146,8 +156,8 @@ class Components:
         """
         # HStream developer note: The default value logic is handled by the `@component_wrapper`
         with self.doc.select(
-            ("name", key),
-            ("hx-post", f"/value_changed/{key}"),
+            ("name", "new_value"),
+            ("hx-post", f"/set_component_value?component_id={key}"),
         ):
             for value in label:
                 with self.tag(
@@ -155,10 +165,9 @@ class Components:
                     ("value", value),
                 ):
                     if kwargs["value"] == value:
-                        self.doc.attr(selected='')
+                        self.doc.attr(selected="")
 
                     self.text(str(value))
-
 
     @component_wrapper
     def multiselect(
@@ -175,106 +184,79 @@ class Components:
         Returns:
             str: Selected value
         """
-        
-        assert type(label)==type([]) and type(default_value)==type([]), "multiselect requires a list of options and a list of default values"
+
+        assert type(label) == type([]) and type(default_value) == type(
+            []
+        ), "multiselect requires a list of options and a list of default values"
 
         # HStream developer note: The default value logic is handled by the `@component_wrapper`
-        js_to_get_all_select_values = f"""
-        Array.from(document.querySelectorAll('#{key} option:checked')).map(el => el.value).toString()
-            """
         if type(kwargs["value"]) == type(""):
             # the frontend returns the value as a string of comma seperated values
-            currently_selected_values = kwargs["value"].split(',')
+            currently_selected_values = kwargs["value"].split(",")
         elif type(kwargs["value"]) == type([]):
             currently_selected_values = kwargs["value"]
         else:
             raise "multi select current value seems corrupted"
 
         with self.doc.select(
-            ("name", key),
-            ('id', key),
-            ("hx-post", f"/value_changed/{key}"),
+            ("name", "new_value"),
+            ("id", key),
+            ("hx-post", f"/set_component_value?component_id={key}"),
             ("multiple", ""),
             # transform the multiselect value into a list of selected indexes like "1,2,7"
-            ("hx-vals", "js:{"+key+" : "+js_to_get_all_select_values+"}"),
-            ("hx-trigger", "focusout")
+            # ("hx-vals", "js:{"+key+" : "+js_to_get_all_select_values+"}"),
+            ("hx-trigger", "focusout"),
         ):
             for value in label:
                 assert not "," in value, "multiselect options can't contain commas"
                 with self.tag(
                     "option",
                     ("value", value),
-                    ("selected", "") if value in currently_selected_values else ''
+                    ("selected", "") if value in currently_selected_values else "",
                 ):
                     self.text(value)
 
-    # @component_wrapper
-    # def dropdown(
-    #     self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
-    # ) -> List[int]:
-    #     js_to_get_all_select_values = f"""
-    #     extractCheckedCheckboxValues("#{key}.map(el => el.value).toString()
-    #         """
-    #     js_to_get_all_select_values = f"""console.log('hi')"""
-        
-    #     with self.tag('script', 
-    #                   ('type', 'text/javascript'),
-    #                   ):
-    #         self.doc.asis("""
-    #         function extractCheckedCheckboxValues(elementId) {
-    #             const element = document.getElementById(elementId);
-                
-    #             if (!element) {
-    #                 console.error(`Element with ID '${elementId}' not found.`);
-    #                 return [];
-    #             }
-                
-    #             const checkboxes = element.querySelectorAll('input[type="checkbox"]:checked');
-    #             const values = Array.from(checkboxes).map((checkbox) => checkbox.value);
-                
-    #             return values;
-    #             }
-    #         """)
+        return lambda x: [x] if type(x) == type("") else x
 
-    #     if type(kwargs['value']) == type([]):
-    #         value = kwargs['value']
-    #     elif type(kwargs['value']) == type(""):
-    #         value = kwargs['value'].split(',')
-    #     else:
-    #         value =  kwargs['value']
-
-    #     with self.tag('details', 
-    #             ('role','list'),
-    #             ('key', key),
-    #             ('id', key),
-    #             # ('onfocus', f'(e) => console.log(extractCheckedCheckboxValues("{key}"))'),
-    #             # ("hx-trigger", f"click from:#{key}-submit"),
-    #             ("hx-post", f"/value_changed/{key}"),
-    #             ("hx-vals", "js:{"+key+" : "+f'extractCheckedCheckboxValues("{key}")'+"}"),
-    #             ("hx-trigger", f"revealed from:#{key}-dropdown-option"),
-    #             ):
-    #         with self.tag('summary', ('aria-haspopup','listbox')):
-    #             self.text('Dropdown')
-    #         with self.tag('ul', 
-                        
-    #                     ('role','listbox'),
-    #                     ):
-    #             with self.tag('li'):
-    #                 for option in label:
-    #                     with self.tag('label'):
-    #                         self.doc.input(
-    #                             ('id', f'{key}-dropdown-option'),
-    #                             ('name', 'option') ,
-    #                             ('type','checkbox'),
-    #                             ('value', option),
-    #                             ('checked' if option in value else '', ''),
-    #                         )
-    #                         self.text(option)
-    #     with self.tag("button",
-    #                   ('onclick', f'console.log(extractCheckedCheckboxValues("{key}"))'),
-    #                   ('id',f"{key}-submit"),
-    #                   ):
-    #         self.text('done')
+    @component_wrapper
+    def multi_dropdown(
+        self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
+    ) -> List[int]:
+        with self.tag(
+            "form",
+            ("id", key),
+            ("hx-post", f"/set_component_value?component_id={key}"),
+            # ("hx-trigger", "click from:input[type=checkbox]"),
+        ):
+            with self.tag(
+                "details",
+                ("class", "dropdown"),
+                ("name", "new_value"),
+                ("multiple", ""),
+            ):
+                with self.tag("summary", ("style", "overflow:hidden;")):
+                    for v in kwargs["value"]:
+                        with self.tag("kbd"):
+                            self.text(v)
+                with self.tag("ul"):
+                    with self.tag("li"):
+                        for option in label:
+                            with self.tag("label"):
+                                checked = (
+                                    ("checked", "")
+                                    if option in kwargs["value"]
+                                    else ("not_checked", "")
+                                )
+                                self.doc.input(
+                                    ("name", option),
+                                    ("type", "checkbox"),
+                                    ("value", option),
+                                    checked,
+                                )
+                                self.text(option)
+                    with self.tag("button", ("type", "submit")):
+                        self.text("submit")
+        return lambda x: list(x.keys()) if type(x) == type({}) else x
 
     @component_wrapper
     def slider(
@@ -282,7 +264,7 @@ class Components:
         label: str,
         minValue: int,
         maxValue: int,
-        default_value: int,
+        default_value: int = None,
         key: str = None,
         **kwargs,
     ) -> str:
@@ -291,13 +273,13 @@ class Components:
             self.text(label)
         with self.tag(
             "input",
-            ("name", key),
+            ("name", "new_value"),
             ("id", key),
             ("type", "range"),
             ("value", str(kwargs["value"])),
             ("min", minValue),
             ("max", maxValue),
-            ("hx-post", f"/value_changed/{key}"),
+            ("hx-post", f"/set_component_value?component_id={key}"),
         ):
             pass
 
@@ -305,8 +287,8 @@ class Components:
     def nav(
         self,
         label: List[str],
-        default_value,
         key,
+        default_value=None,
         **kwargs,
     ):
         hyperscript = f"""
@@ -334,21 +316,27 @@ class Components:
             ):
                 with self.tag("ul"):
                     for item in label:
-                        color = "grey" if kwargs["value"] == item else ""
-                        with self.tag(
-                            "li",
-                            ("hx-trigger", "click"),
-                            (
-                                "hx-post",
-                                f"/value_changed/{key}?{key}={item}",
-                            ),
-                            ("hx-swap", "none"),
-                        ):
+                        if type(item) == type(lambda x: x):
+                            # handle functions
+                            item()
+
+                        elif type(item) == type(""):
+                            # handle string navs
+                            color = "grey" if kwargs["value"] == item else ""
                             with self.tag(
-                                "a",
-                                # ("style", f"color:{color}"),
+                                "li",
+                                ("hx-trigger", "click"),
+                                (
+                                    "hx-post",
+                                    f"/set_component_value/?component_id={key}&new_value={item}",
+                                ),
+                                ("hx-swap", "none"),
                             ):
-                                self.text(str(item))
+                                with self.tag(
+                                    "a",
+                                    # ("style", f"color:{color}"),
+                                ):
+                                    self.text(str(item))
 
     @component_wrapper
     def pyplot(self, fig, height="200px", key: str = None, **kwargs) -> None:
@@ -396,25 +384,32 @@ class Components:
         **kwargs,
     ) -> str:
         """ """
+        bool_checker_fromat_fn = (
+            lambda user_checkbox_value: user_checkbox_value == "True"
+        )
+        value = bool_checker_fromat_fn(kwargs["value"])
         with self.tag("label", ("for", key)):
+            with self.tag(
+                "input",
+                ("id", key),
+                ("type", "checkbox"),
+                (
+                    "checked" if value else "notchecked",
+                    "",
+                ),
+                # annoyingly a blank checkbox is not sent back in a submit event,
+                # so we attach the state of the checkbox here
+                # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
+                # ("hx-vals", "js:{" + key + ": event.srcElement.checked}"),
+                # ("hx-post", f"/set_component_value?component_id={key}"),
+                (
+                    "hx-post",
+                    f"/set_component_value/?component_id={key}&new_value={not value}",
+                ),
+            ):
+                pass
             self.text(label)
-        with self.tag(
-            "input",
-            ("id", key),
-            ("type", "checkbox"),
-            (
-                "checked"
-                if kwargs["value"] in ["true", True, 1, "1"]
-                else "notchecked",
-                "",
-            ),
-            # annoyingly a blank checkbox is not sent back in a submit event,
-            # so we attach the state of the checkbox here
-            # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
-            ("hx-vals", "js:{" + key + ": event.srcElement.checked}"),
-            ("hx-post", f"/value_changed/{key}"),
-        ):
-            pass
+        return bool_checker_fromat_fn
 
     @component_wrapper
     def button(
@@ -429,8 +424,12 @@ class Components:
             "button",
             ("id", key),
             ("type", "submit"),
-            ("hx-vals", '{nav:"true"}'),
-            ("hx-post", f"/value_changed/{key}?{key}=true"),
+            ("hx-trigger", "click"),
+            ("hx-post", f"/set_component_value/?component_id={key}&new_value=true"),
             ("hx-swap", "none"),
         ):
             self.text(label)
+        cherrypy.session[key] = False
+        return lambda s: True if s in ["True", 'true', True] else False
+    def grid(self, *args, **kwargs):
+        return self.tag("div", ("class", "grid"), *args, **kwargs)

@@ -1,8 +1,12 @@
 from hstream import hs
+from time import sleep
 
-visitor_name = hs.text_input("What's your name?", default_value = "friend")
+hs.nav(["test"])
 
-hs.markdown(f"Welcome {visitor_name}")
-hs.markdown("Select your favorite colors")
+t = hs.text_input(
+    "test",
+)
 
-# hs.dropdown(['a', "b"], default_value=["a"])
+b = hs.button("test", "test123")
+if b:
+    hs.markdown(b)
