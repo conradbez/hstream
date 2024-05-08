@@ -430,6 +430,7 @@ class Components(ComponentsGeneric):
         ):
             self.text(label)
         cherrypy.session[key] = False
-        return lambda s: True if s in ["True", 'true', True] else False
+        return lambda s: True if s in ["True", "true", True] else False
+
     def grid(self, *args, **kwargs):
         return self.tag("div", ("class", "grid"), *args, **kwargs)

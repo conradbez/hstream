@@ -1,9 +1,10 @@
-import threading
+import traceback
 from hstream.template import format_html, error_html
 import cherrypy
 from hstream.utils import set_session_var
 from pathlib import Path
 from hstream.utils import split_code_into_blocks
+
 
 def run_user_code_and_return_hs_instance(file: Path):
     users_hs_instance = None
@@ -18,6 +19,7 @@ def run_user_code_and_return_hs_instance(file: Path):
             compiled_code = compile(block, f"HS_STREAM_USER_FILE_LINE_{line}", "exec")
             exec(compiled_code, namespace)
     except Exception as e:
+        e.args = (f"Line: {line}, code: {block}", *e.args)
         raise e
     finally:
         for var_name, var_value in namespace.items():
@@ -37,9 +39,10 @@ class RootServerPathWorld(object):
     def index(self):
         while cherrypy.session.get("hs_script_running", False):
             from time import sleep
+
             set_session_var("hs_script_should_stop", True)
             sleep(0.1)
-        
+
         cherrypy.session.acquire_lock()
         cherrypy.session.clear()
         cherrypy.session.release_lock()
@@ -61,7 +64,9 @@ class RootServerPathWorld(object):
                 "hs_html",
                 cherrypy.session.get("hs_html", "") + error_html.format(error=e),
             )
-            return 'error'
+            cherrypy.response.status = 204
+            print(e)
+            return "error"
         set_session_var("hs_script_running", False)
         cherrypy.response.headers["HX-Trigger"] = "update_content_event"
         cherrypy.response.status = 204

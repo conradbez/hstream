@@ -19,15 +19,17 @@ def check_duplicate_ids_is_present(html):
 
     return dups if len(dups) > 0 else False
 
+
 import ast
 
-def split_code_into_blocks(code:str):
+
+def split_code_into_blocks(code: str):
     tree = ast.parse(code)
     blocks = []
 
     for node in ast.iter_child_nodes(tree):
         block = ast.unparse(node)
         blocks.append(block)
-            
+
     # import ipdb; ipdb.set_trace()
     return blocks

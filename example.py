@@ -10,3 +10,4 @@ t = hs.text_input(
 b = hs.button("test", "test123")
 if b:
     hs.markdown(b)
+assert 1 == 2, "this is an error"
