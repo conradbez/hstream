@@ -30,6 +30,8 @@
     window.addEventListener('keydown', function (e) { if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) { if (e.target.nodeName == 'INPUT') { console.log("enter blocked so page doesn't reload"); return false; } } }, true);
   </script>
   <style>
+  
+
     .htmx-indicator {
       opacity: 0;
       transition: opacity 500ms ease-in;
@@ -55,7 +57,10 @@
   </script>
   <main class="container">
     <div id="run_hs_dummy" hx-get="run_hs" hx-trigger="load delay:0ms, trigger_run_hs_event from:body"
-      hx-indicator="#spinner" hx-disabled-elt="input[type='text'], button">
+      hx-indicator="#spinner" hx-disabled-elt="input[type='text'], button"
+      hx-swap="none"
+      >
+      
     </div>
     <div id="hs-content" hx-get="partial_or_full_html_content"
       hx-trigger="load delay:50ms, trigger_run_hs_event from:body delay:200ms, update_content_event from:body delay:300ms"

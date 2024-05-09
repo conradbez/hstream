@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal, Tuple
 from functools import wraps
 from pathlib import Path
 from inspect import getframeinfo, stack
@@ -417,13 +417,14 @@ class Components(ComponentsGeneric):
         label: str,
         default_value: bool = False,
         key: str = None,
+        full_width: bool = False,
         **kwargs,
     ) -> str:
         """ """
         with self.tag(
             "button",
             ("id", key),
-            ("type", "submit"),
+            ("type", "submit") if full_width else ("type", "button"),
             ("hx-trigger", "click"),
             ("hx-post", f"/set_component_value/?component_id={key}&new_value=true"),
             ("hx-swap", "none"),

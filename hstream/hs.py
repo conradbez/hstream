@@ -3,6 +3,7 @@ import yattag
 
 # from hstream.components.text_input import text_input
 from hstream.components.components import Components
+from hstream.components.styling_components import StyledComponents
 from hstream.utils import set_session_var
 
 
@@ -14,7 +15,7 @@ class HSDoc(Doc):
             return res
 
 
-class hs(Components):
+class hs(Components, StyledComponents):
     def __init__(self) -> (yattag.SimpleDoc, yattag.Doc.tag, yattag.Doc.text):
         self.doc, self.tag, self.text = HSDoc().tagtext()
 

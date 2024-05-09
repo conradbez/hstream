@@ -16,6 +16,7 @@ beautifulsoup4 = "^4.12"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
+ipykernel = "^6.29.4"
 
 [build-system]
 requires = ["poetry-core"]
