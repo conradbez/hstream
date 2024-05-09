@@ -1,13 +1,5 @@
 from hstream import hs
 
-# hs.stylesheet_href = hs.list_css_frameworks()["pico.css"]
-
-page = hs.nav(label=["Home", "About"], default_value="Home", key="nav")
-
-hs.markdown(page)
-hs.markdown(page)
-hs.markdown(page)
-
 with hs.html("header"):
     hs.markdown(
         f"""## HStream

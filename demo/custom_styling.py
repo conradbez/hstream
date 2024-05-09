@@ -25,7 +25,6 @@ hs.markdown(
 
 """
 )
-hs.stylesheet_href = hs.list_css_frameworks()["pico.css"]
 
 with hs.doc.tag(
     "center",
