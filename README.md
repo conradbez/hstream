@@ -37,12 +37,7 @@ And as you can see we get a fully interactive web app - ready for deployment!
 ![hstream demo](./demo/example_demo.gif)
 
 
-# Examples
-
-- [Select demo](./demo/select.md)
-- [Static files](./demo/static_files.md)
-- [Theming](./demo/theming.md)
-- [More](./demo)
+# [Examples]((./demo))
 
 # Motivation
 
@@ -53,20 +48,6 @@ Love Streamlit but:
 - non-standard approach doesn't play nicely with existing ecosystems
 
 H-(html)-Stream is built with semantic html, FastApi and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
-
-# Features
-
-- [x] live server reload on file change (through univorn)
-- [x] semantic html and basic html manipulation from within script
-- [x] basic components - see below
-- [x] swap stylesheet
-- [x] complex html manipulation from within script (setting attributes)
-- [x] plotly plot support
-- [x] select component
-- [x] multi select component
-- [ ] auto ssl certs for easy deployment
-- [ ] example component architecture
-- [ ] reload browser on code change
 
 ## Components
 
@@ -107,7 +88,7 @@ with hs.grid():
             hs.markdown('pico css')
 ```
 
-![hstream card demo](docs/card_example.png)
+![hstream card demo](demo/card_example.png)
 
 
 # Technologies
@@ -121,3 +102,18 @@ Big thanks to the following libraries in particular
 - MVP.css
 - FastAPI
 - uvicorn
+
+
+# Features (WIP)
+
+- [x] live server reload on file change (through univorn)
+- [x] semantic html and basic html manipulation from within script
+- [x] basic components - see below
+- [x] swap stylesheet
+- [x] complex html manipulation from within script (setting attributes)
+- [x] plotly plot support
+- [x] select component
+- [x] multi select component
+- [ ] auto ssl certs for easy deployment
+- [ ] example component architecture
+- [ ] reload browser on code change
