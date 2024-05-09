@@ -419,7 +419,7 @@ class Components(ComponentsGeneric):
         key: str = None,
         full_width: bool = False,
         **kwargs,
-    ) -> str:
+    ) -> bool:
         """ """
         with self.tag(
             "button",
@@ -435,3 +435,21 @@ class Components(ComponentsGeneric):
 
     def grid(self, *args, **kwargs):
         return self.tag("div", ("class", "grid"), *args, **kwargs)
+
+    def write_dataframe(self, df, key, striped=False, **kwargs) -> None:
+        """Writes a dataframe to the
+
+        Args:
+            df (pd.DataFrame): Dataframe to write to the web front end
+            key (str): Must be unique within the app. Used to reference the dataframe in the front end
+        """
+        with self.tag(
+            "div",
+            klass="overflow-auto",
+        ):
+            html = (
+                df.to_html(classes="", border="", justify="unset")
+                .replace('style="text-align: unset;"', "")
+                .replace('class="dataframe"', f'class="{striped}"')
+            )
+            self.doc.asis(html)
