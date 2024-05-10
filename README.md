@@ -90,6 +90,10 @@ with hs.grid():
 
 ![hstream card demo](demo/card_example.png)
 
+- `run_server`: Once you outgrown our framework it is easy to add custom functionality or piece by piece move to a custom web app.
+
+[Server Example](./demo/server_example.md)
+
 
 # Technologies
 
