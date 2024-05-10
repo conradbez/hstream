@@ -103,9 +103,7 @@ Big thanks to the following libraries in particular
 - htmx
 - Yattag
 - pico css
-- MVP.css
-- FastAPI
-- uvicorn
+- CherryPy
 
 
 # Features (WIP)
