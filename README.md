@@ -1,6 +1,8 @@
 # HStream
 
-Easiest interactive python web app using htmx and semantic html
+Convert your script to interactive python web app `user_said = hs.text_input("What would you like to say:")`
+
+Powered by htmx enables easy app ejection to scale/extend once you've outgrown HStream. Inspired by [Streamlit](https://github.com/streamlit/streamlit).
 
 # Usage
 
