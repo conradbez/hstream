@@ -17,7 +17,7 @@ def run(file=Path("./app.py")):
 @click.command()
 def init():
     import urllib.request
-    url = "https://raw.githubusercontent.com/conradbez/hstream/main/example.py"
+    url = "https://raw.githubusercontent.com/conradbez/hstream/main/demo/example.py"
     response = urllib.request.urlopen(url)
     content = response.read().decode()
     if example := Path("example.py"):
