@@ -10,7 +10,6 @@ hstream = "hstream.cli:cli"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-CherryPy = "^18.9.0"
 click = "^8.1.7"
 yattag = "^1.15.2"
 ipdb = "^0.13.13"

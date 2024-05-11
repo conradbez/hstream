@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpRequest
 from time import sleep
 from hstream.hs import hs as hs_type
 from hstream.template import format_html, error_html
-from hstream.utils import set_session_var, split_code_into_blocks, pick_a_strategy
+from hstream.utils import split_code_into_blocks, pick_a_strategy
 from .session_utils import get_session_var, set_session_var
 
 def request_server_stop_running_user_script(request,wait=True):

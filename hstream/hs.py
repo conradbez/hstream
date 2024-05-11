@@ -4,7 +4,6 @@ import yattag
 # from hstream.components.text_input import text_input
 from hstream.components.components import Components
 from hstream.components.styling_components import StyledComponents
-from hstream.utils import set_session_var
 
 
 class HSDoc(Doc):

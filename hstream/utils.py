@@ -1,15 +1,7 @@
-import cherrypy
 import ast
 import bs4
 import collections
 from typing import Literal
-
-
-def set_session_var(component_id, new_value):
-    cherrypy.session.acquire_lock()
-    cherrypy.session[component_id] = new_value
-    cherrypy.session.release_lock()
-    return
 
 
 def check_duplicate_ids_is_present(html):
