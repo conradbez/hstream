@@ -29,7 +29,7 @@ def component_wrapper(component_fucntion):
             )
         # if there is no current value let subsitute the default value
 
-        if user_input_formatting_fn != None:
+        if user_input_formatting_fn is not None:
             return user_input_formatting_fn(value)
         else:
             # temporary while we get all components to return a function
@@ -323,7 +323,7 @@ class Components(ComponentsGeneric):
 
                         elif type(item) == type(""):
                             # handle string navs
-                            color = "grey" if kwargs["value"] == item else ""
+                            "grey" if kwargs["value"] == item else ""
                             with self.tag(
                                 "li",
                                 ("hx-trigger", "click"),
@@ -385,9 +385,8 @@ class Components(ComponentsGeneric):
         **kwargs,
     ) -> str:
         """ """
-        bool_checker_fromat_fn = (
-            lambda user_checkbox_value: user_checkbox_value == "True"
-        )
+        def bool_checker_fromat_fn(user_checkbox_value):
+            return user_checkbox_value == "True"
         value = bool_checker_fromat_fn(kwargs["value"])
         with self.tag("label", ("for", key)):
             with self.tag(

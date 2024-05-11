@@ -170,7 +170,7 @@ def set_component_value(
     new_value = request.POST.get("new_value")
 
     request_server_stop_running_user_script(request, wait=True)
-    if new_value == None:
+    if new_value is None:
         new_value = request.GET.get("new_value")
     set_session_var(request, component_id, new_value)
     response = HttpResponse(f"suc: {request.session[component_id]}")

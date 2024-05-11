@@ -49,7 +49,7 @@ def pick_a_strategy(
     current_hs_ids = list(current_hs_ids_and_content.keys())
     prev_hs_ids = list(prev_hs_ids_and_content.keys())
 
-    if prev_html == None or not hs_script_running:
+    if prev_html is None or not hs_script_running:
         return "1_full_replace"
 
     elif prev_html == new_html:
