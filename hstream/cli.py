@@ -9,8 +9,8 @@ import shutil
 def cli():
     pass
 
-@click.command(help="Convert your script file to a Django app")
-@click.argument("file", type=click.Path(), help="Your script file currently running your app")
+@click.command()
+@click.argument("file", type=click.Path(), )
 def eject(file=Path("./app.py")):
     click.echo('Ejecting a django server...')
     file = Path(file)
@@ -35,14 +35,14 @@ def eject(file=Path("./app.py")):
     click.echo(click.style(f"     python manage.py runserver", fg='green'))
 
 
-@click.command(help="Run your script file")
-@click.argument("file", type=click.Path(), help = "The file to run. should contain something like`from hstream import hs \n hs.markdown('hi)` ")
+@click.command()
+@click.argument("file", type=click.Path(),)
 def run(file=Path("./app.py")):
     click.echo('Running server...')
     file = Path(file)
     run_server(file)
 
-@click.command(help="Initialize a new hstream project with an example file.")
+@click.command()
 def init():
     import urllib.request
     url = "https://raw.githubusercontent.com/conradbez/hstream/main/demo/example.py"
@@ -58,7 +58,6 @@ def init():
     click.echo('Initialized example.py')
     click.echo('Now run:')
     click.echo(click.style(f"     hstream run example.py", fg='green'))
-    # click.echo('        hstream run example.py', color='green')
 
 cli.add_command(eject)
 cli.add_command(run)
