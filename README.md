@@ -63,7 +63,7 @@ Love Streamlit but:
 - hard to reason about when extending and deploying
 - non-standard approach doesn't play nicely with existing ecosystems
 
-H-(html)-Stream is built with semantic html, CherryPy and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
+H-(html)-Stream is built with semantic html, Django and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
 
 ## Components
 
@@ -106,11 +106,6 @@ with hs.grid():
 
 ![hstream card demo](demo/card_example.png)
 
-- `run_server`: Once you outgrown our framework it is easy to add custom functionality or piece by piece move to a custom web app.
-
-[Server Example](./demo/server_example.md)
-
-
 # Technologies
 
 Big thanks to the following libraries in particular
@@ -119,8 +114,7 @@ Big thanks to the following libraries in particular
 - htmx
 - Yattag
 - pico css
-- CherryPy
-
+- Django
 
 # Features (WIP)
 
