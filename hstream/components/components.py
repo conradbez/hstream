@@ -432,9 +432,9 @@ class Components(ComponentsGeneric):
         ):
             self.text(label)
 
-        _hs_session[
-            key
-        ] = False  # set the button back to false after it has been clicked
+        _hs_session[key] = (
+            False  # set the button back to false after it has been clicked
+        )
         return lambda s: True if s in ["True", "true", True] else False
 
     def grid(self, *args, **kwargs):
