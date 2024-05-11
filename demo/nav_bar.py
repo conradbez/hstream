@@ -1,3 +1,4 @@
+import importlib
 import glob
 import os
 
@@ -9,7 +10,7 @@ for f in files:
         continue
 
 file = hs.nav([os.path.basename(f) for f in files[:4]], default_value="example.py")
-import importlib
+
 
 importlib.import_module(f'demo.{file.split(".")[0]}')
 

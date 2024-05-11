@@ -2,7 +2,7 @@ from functools import wraps
 from inspect import getframeinfo, stack
 from pathlib import Path
 from typing import List
-
+import types
 
 def component_wrapper(component_fucntion):
     @wraps(component_fucntion)
@@ -66,7 +66,7 @@ class ComponentsGeneric:
         """
         # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to
         #  the django server
-        return _hs_session.get(key, default_value) # F821
+        return _hs_session.get(key, default_value) # noqa: F821
 
 
 class Components(ComponentsGeneric):
@@ -257,7 +257,7 @@ class Components(ComponentsGeneric):
                                 self.text(option)
                     with self.tag("button", ("type", "submit")):
                         self.text("submit")
-        return lambda x: list(x.keys()) if type(x) == type({}) else x
+        return lambda x: list(x.keys()) if isinstance(x, dict) else x
 
     @component_wrapper
     def slider(
@@ -317,11 +317,12 @@ class Components(ComponentsGeneric):
             ):
                 with self.tag("ul"):
                     for item in label:
-                        if type(item) == type(lambda x: x):
+                        
+                        if isinstance(item, types.FunctionType):
                             # handle functions
                             item()
 
-                        elif type(item) == type(""):
+                        elif isinstance(item, str):
                             # handle string navs
                             "grey" if kwargs["value"] == item else ""
                             with self.tag(
@@ -431,7 +432,7 @@ class Components(ComponentsGeneric):
         ):
             self.text(label)
 
-        _hs_session[
+        _hs_session[ # noqa: F821
             key
         ] = False  # set the button back to false after it has been clicked
         return lambda s: True if s in ["True", "true", True] else False
