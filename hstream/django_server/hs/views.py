@@ -6,7 +6,8 @@ from hstream.template import format_html, error_html
 from hstream.utils import split_code_into_blocks, pick_a_strategy
 from .session_utils import get_session_var, set_session_var
 
-def request_server_stop_running_user_script(request,wait=True):
+
+def request_server_stop_running_user_script(request, wait=True):
     if wait:
         while get_session_var(request, "hs_script_running", False):
             set_session_var(request, "hs_script_should_stop", True)
@@ -15,10 +16,12 @@ def request_server_stop_running_user_script(request,wait=True):
         set_session_var(request, "hs_script_should_stop", True)
     set_session_var(request, "hs_html", "")
 
+
 def index(request: HttpRequest):
     request_server_stop_running_user_script(request, wait=True)
     set_session_var(request, "hs_html_last_sent", "")
     return HttpResponse(format_html())
+
 
 def run_hs(request):
     if get_session_var(request, "hs_script_running", False):
@@ -26,9 +29,12 @@ def run_hs(request):
     set_session_var(request, "hs_script_running", True)
     try:
         import os
+
         # TODO: I'm sure theres a way to pass this filename from django through the cli :thinking
         print(os.environ["HS_FILE_TO_RUN"])
-        hs: hs_type = run_user_code_and_return_hs_instance(os.environ["HS_FILE_TO_RUN"], request)
+        hs: hs_type = run_user_code_and_return_hs_instance(
+            os.environ["HS_FILE_TO_RUN"], request
+        )
     except Exception as e:
         set_session_var(request, "hs_script_running", False)
         set_session_var(
@@ -39,9 +45,10 @@ def run_hs(request):
         return HttpResponse(f"error: {e}")
     set_session_var(request, "hs_script_running", False)
     response = HttpResponse(hs.doc.getvalue())
-    hs.clear() # we should always clear the hs element otherwise we get ghost elements on next run
+    hs.clear()  # we should always clear the hs element otherwise we get ghost elements on next run
     response["HX-Trigger"] = "update_content_event"
     return response
+
 
 def partial_or_full_html_content(request):
     """
@@ -71,11 +78,11 @@ def partial_or_full_html_content(request):
         )
 
     update_strategy = pick_a_strategy(
-        prev_html, html, get_session_var(request,"hs_script_running", False)
+        prev_html, html, get_session_var(request, "hs_script_running", False)
     )
     # print(f"update strategy: {update_strategy}")
     response = HttpResponse()
-    if get_session_var(request,"hs_script_running", False):
+    if get_session_var(request, "hs_script_running", False):
         response.headers["HX-Trigger"] = "update_content_event"
 
     if update_strategy == "1_full_replace":
@@ -98,7 +105,7 @@ def partial_or_full_html_content(request):
                 if old_value != new_value:
                     set_session_var(
                         "hs_html_partial_keys_updated",
-                        get_session_var(request,"hs_html_partial_keys_updated", [])
+                        get_session_var(request, "hs_html_partial_keys_updated", [])
                         + [old_key],
                     )
                     response.headers["HX-Target"] = f"#{old_key}"
@@ -124,7 +131,7 @@ def partial_or_full_html_content(request):
 def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs_type:
     users_hs_instance = None
     moneky_pathed__builtins__ = __builtins__
-    moneky_pathed__builtins__['_hs_session'] = request.session
+    moneky_pathed__builtins__["_hs_session"] = request.session
     namespace = {"__builtins__": moneky_pathed__builtins__}
     try:
         code = open(file).read()
@@ -132,7 +139,10 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
             if get_session_var(request, "hs_script_should_stop", False):
                 break
             compiled_code = compile(block, f"HS_STREAM_USER_FILE_LINE_{line}", "exec")
-            exec(compiled_code, namespace, )
+            exec(
+                compiled_code,
+                namespace,
+            )
             try:
                 for var_name, var_value in namespace.items():
                     if var_value.__class__.__name__ == "hs":
@@ -140,7 +150,7 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
                 html = users_hs_instance.doc.getvalue()
                 # TODO: if the script sets component values we should honour these as well
                 # for example a button reverting itself back to false after being clicked
-                # request.session = namespace['_hs_session'] 
+                # request.session = namespace['_hs_session']
                 set_session_var(request, "hs_html", html)
             except:
                 pass
@@ -152,11 +162,13 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
     return users_hs_instance
 
 
-def set_component_value(request: HttpRequest,):
+def set_component_value(
+    request: HttpRequest,
+):
     # import ipdb; ipdb.set_trace()
     component_id = request.GET.get("component_id")
     new_value = request.POST.get("new_value")
-    
+
     request_server_stop_running_user_script(request, wait=True)
     if new_value == None:
         new_value = request.GET.get("new_value")

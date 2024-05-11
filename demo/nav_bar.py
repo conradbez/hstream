@@ -9,6 +9,7 @@ for f in files:
 
 file = hs.nav([os.path.basename(f) for f in files[:4]], default_value="example.py")
 import importlib
+
 importlib.import_module(f'demo.{file.split(".")[0]}')
 
 # exec(open(f'./demo/{file}').read())

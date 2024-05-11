@@ -64,7 +64,7 @@ class ComponentsGeneric:
             label (_type_, optional): Must be unique within the app. Content to write to the web front end. Defaults to None.
             default_value (_type_, optional): default value the component returns before use enters value - will always be null for text or component where user doesn't input. Defaults to None.
         """
-        # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to 
+        # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to
         #  the django server
         return _hs_session.get(key, default_value)
 
@@ -432,7 +432,9 @@ class Components(ComponentsGeneric):
         ):
             self.text(label)
 
-        _hs_session[key] = False # set the button back to false after it has been clicked
+        _hs_session[key] = (
+            False  # set the button back to false after it has been clicked
+        )
         return lambda s: True if s in ["True", "true", True] else False
 
     def grid(self, *args, **kwargs):
