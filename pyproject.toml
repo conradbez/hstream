@@ -16,6 +16,7 @@ yattag = "^1.15.2"
 ipdb = "^0.13.13"
 markdown = "^3.6"
 beautifulsoup4 = "^4.12"
+django = "^5.0.6"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

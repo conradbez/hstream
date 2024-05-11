@@ -2,7 +2,6 @@ from typing import List, Literal, Tuple
 from functools import wraps
 from pathlib import Path
 from inspect import getframeinfo, stack
-import cherrypy
 
 
 def component_wrapper(component_fucntion):
@@ -59,13 +58,15 @@ class ComponentsGeneric:
                 return key
 
     def component_value(self, default_value=None, key=None, **kwargs):
-        """Writes a component to the SH front end
+        """Writes a component to the HS front end
 
         Args:
             label (_type_, optional): Must be unique within the app. Content to write to the web front end. Defaults to None.
             default_value (_type_, optional): default value the component returns before use enters value - will always be null for text or component where user doesn't input. Defaults to None.
         """
-        return cherrypy.session.get(key, default_value)
+        # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to 
+        #  the django server
+        return _hs_session.get(key, default_value)
 
 
 class Components(ComponentsGeneric):
@@ -426,11 +427,12 @@ class Components(ComponentsGeneric):
             ("id", key),
             ("type", "submit") if full_width else ("type", "button"),
             ("hx-trigger", "click"),
-            ("hx-post", f"/set_component_value/?component_id={key}&new_value=true"),
+            ("hx-post", f"/set_component_value?component_id={key}&new_value=true"),
             ("hx-swap", "none"),
         ):
             self.text(label)
-        cherrypy.session[key] = False
+
+        _hs_session[key] = False # set the button back to false after it has been clicked
         return lambda s: True if s in ["True", "true", True] else False
 
     def grid(self, *args, **kwargs):
