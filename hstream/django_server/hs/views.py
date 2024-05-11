@@ -152,7 +152,7 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
                 # for example a button reverting itself back to false after being clicked
                 # request.session = namespace['_hs_session']
                 set_session_var(request, "hs_html", html)
-            except: # noqa #E722
+            except:  # noqa #E722
                 pass
     except Exception as e:
         e.args = (f"Line: {line}, code: {block}", *e.args)

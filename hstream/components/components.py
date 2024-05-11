@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 import types
 
+
 def component_wrapper(component_fucntion):
     @wraps(component_fucntion)
     def wrapped_component_function(self, *method_args, **method_kwargs):
@@ -66,7 +67,7 @@ class ComponentsGeneric:
         """
         # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to
         #  the django server
-        return _hs_session.get(key, default_value) # noqa: F821
+        return _hs_session.get(key, default_value)  # noqa: F821
 
 
 class Components(ComponentsGeneric):
@@ -317,7 +318,7 @@ class Components(ComponentsGeneric):
             ):
                 with self.tag("ul"):
                     for item in label:
-                        
+
                         if isinstance(item, types.FunctionType):
                             # handle functions
                             item()
@@ -386,8 +387,10 @@ class Components(ComponentsGeneric):
         **kwargs,
     ) -> str:
         """ """
+
         def bool_checker_fromat_fn(user_checkbox_value):
             return user_checkbox_value == "True"
+
         value = bool_checker_fromat_fn(kwargs["value"])
         with self.tag("label", ("for", key)):
             with self.tag(
@@ -432,7 +435,7 @@ class Components(ComponentsGeneric):
         ):
             self.text(label)
 
-        _hs_session[ # noqa: F821
+        _hs_session[  # noqa: F821
             key
         ] = False  # set the button back to false after it has been clicked
         return lambda s: True if s in ["True", "true", True] else False
