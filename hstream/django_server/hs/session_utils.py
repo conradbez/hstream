@@ -1,8 +1,9 @@
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpRequest, HttpResponse
 
 
 def refresh_session(request: HttpRequest):
     from importlib import import_module
+
     from django.conf import settings
 
     engine = import_module(settings.SESSION_ENGINE)

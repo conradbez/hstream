@@ -1,4 +1,5 @@
 from hstream import hs
+
 page = hs.nav(["Home", "About"],default_value="Home", key="nav")
 
 if page == "About":

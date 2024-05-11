@@ -1,9 +1,12 @@
 from pathlib import Path
-from django.http import HttpResponse, HttpRequest
 from time import sleep
+
+from django.http import HttpRequest, HttpResponse
+
 from hstream.hs import hs as hs_type
-from hstream.template import format_html, error_html
-from hstream.utils import split_code_into_blocks, pick_a_strategy
+from hstream.template import error_html, format_html
+from hstream.utils import pick_a_strategy, split_code_into_blocks
+
 from .session_utils import get_session_var, set_session_var
 
 
@@ -64,10 +67,8 @@ def partial_or_full_html_content(request):
     Decision is based on internal conditions of what was last sent, current html
     content and if the script is running - see: contribution_docs/update_strategies.md
     """
-    from hstream.utils import (
-        check_duplicate_ids_is_present,
-        get_hs_ids_with_content,
-    )
+    from hstream.utils import (check_duplicate_ids_is_present,
+                               get_hs_ids_with_content)
 
     html = get_session_var(request, "hs_html", "")
     prev_html = get_session_var(request, "hs_html_last_sent", None)

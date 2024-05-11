@@ -1,7 +1,7 @@
 from string import Template
 from typing import Literal, Tuple
-from hstream.components.components import ComponentsGeneric, component_wrapper
 
+from hstream.components.components import ComponentsGeneric, component_wrapper
 
 Color = Literal[
     "red",

@@ -1,4 +1,5 @@
 import pandas as pd
+
 from hstream import hs
 
 hs.markdown("## HStream also supports displaying dataframes")

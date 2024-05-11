@@ -1,9 +1,11 @@
-import click
-from hstream.run import run_server
-from pathlib import Path
 import os
-import hstream
 import shutil
+from pathlib import Path
+
+import click
+
+import hstream
+from hstream.run import run_server
 
 
 @click.group()

@@ -1,7 +1,8 @@
 import ast
-import bs4
 import collections
 from typing import Literal
+
+import bs4
 
 
 def check_duplicate_ids_is_present(html):

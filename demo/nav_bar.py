@@ -1,6 +1,7 @@
-from hstream import hs
 import glob
 import os
+
+from hstream import hs
 
 files = glob.glob("./demo/*.py")
 for f in files:

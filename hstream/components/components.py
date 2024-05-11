@@ -1,7 +1,7 @@
-from typing import List, Literal, Tuple
 from functools import wraps
-from pathlib import Path
 from inspect import getframeinfo, stack
+from pathlib import Path
+from typing import List, Literal, Tuple
 
 
 def component_wrapper(component_fucntion):
@@ -356,8 +356,8 @@ class Components(ComponentsGeneric):
             hs.pyplot(fig, key='myplot')
         """
 
-        from base64 import b64encode
         import io
+        from base64 import b64encode
 
         stringIObytes = io.BytesIO()
         fig.savefig(stringIObytes, format="png")
