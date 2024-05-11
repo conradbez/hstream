@@ -66,7 +66,7 @@ class ComponentsGeneric:
         """
         # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to
         #  the django server
-        return _hs_session.get(key, default_value)
+        return _hs_session.get(key, default_value) # F821
 
 
 class Components(ComponentsGeneric):
