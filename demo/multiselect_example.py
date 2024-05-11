@@ -1,5 +1,3 @@
-from fastapi.staticfiles import StaticFiles
-
 from hstream import hs
 
 # hs.stylesheet_href = hs.list_css_frameworks()["bare.css"]

@@ -28,7 +28,7 @@ def index(request: HttpRequest):
 
 def run_hs(request):
     if get_session_var(request, "hs_script_running", False):
-        HttpResponse(f"already running")
+        HttpResponse("already running")
     set_session_var(request, "hs_script_running", True)
     try:
         import os
@@ -67,8 +67,7 @@ def partial_or_full_html_content(request):
     Decision is based on internal conditions of what was last sent, current html
     content and if the script is running - see: contribution_docs/update_strategies.md
     """
-    from hstream.utils import (check_duplicate_ids_is_present,
-                               get_hs_ids_with_content)
+    from hstream.utils import check_duplicate_ids_is_present, get_hs_ids_with_content
 
     html = get_session_var(request, "hs_html", "")
     prev_html = get_session_var(request, "hs_html_last_sent", None)

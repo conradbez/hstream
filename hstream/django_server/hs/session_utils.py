@@ -1,4 +1,4 @@
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 
 
 def refresh_session(request: HttpRequest):

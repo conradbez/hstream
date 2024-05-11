@@ -1,5 +1,3 @@
-from time import sleep
-
 from hstream import hs
 
 if hs.button(

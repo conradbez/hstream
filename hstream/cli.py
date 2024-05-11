@@ -41,7 +41,7 @@ def eject(file=Path("./app.py")):
 
     click.echo("Django server ejected successfully.")
     click.echo("You can now run:.")
-    click.echo(click.style(f"     python manage.py runserver", fg="green"))
+    click.echo(click.style("     python manage.py runserver", fg="green"))
 
 
 @click.command()
@@ -65,7 +65,7 @@ def init():
     if example := Path("example.py"):
         if example.exists():
             click.echo(
-                click.style(f"example.py already exists", fg="red"),
+                click.style("example.py already exists", fg="red"),
                 err=True,
             )
             return
@@ -74,7 +74,7 @@ def init():
 
     click.echo("Initialized example.py")
     click.echo("Now run:")
-    click.echo(click.style(f"     hstream run example.py", fg="green"))
+    click.echo(click.style("     hstream run example.py", fg="green"))
 
 
 cli.add_command(eject)

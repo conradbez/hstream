@@ -22,6 +22,7 @@ ipykernel = "^6.29.4"
 pandas = "^2.2.2"
 ipdb = "^0.13.13"
 isort = "^5.13.2"
+pre-commit = "^3.7.1"
 
 [build-system]
 requires = ["poetry-core"]

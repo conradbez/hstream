@@ -1,7 +1,7 @@
 from functools import wraps
 from inspect import getframeinfo, stack
 from pathlib import Path
-from typing import List, Literal, Tuple
+from typing import List
 
 
 def component_wrapper(component_fucntion):
@@ -20,7 +20,7 @@ def component_wrapper(component_fucntion):
         with self.tag(
             "div",
             ("id", f"container_for_{method_kwargs['key']}"),
-            ("hx-trigger", f"none"),
+            ("hx-trigger", "none"),
         ):
             # each component should return a function that formats the user value stored in the session
             # after sent back by htmx
@@ -292,8 +292,8 @@ class Components(ComponentsGeneric):
         default_value=None,
         **kwargs,
     ):
-        hyperscript = f"""
-        on load log #hs-nav then 
+        hyperscript = """
+        on load log #hs-nav then
         if #nav-content in #hs-nav exists
             remove #nav-content in #hs-nav
         end then
@@ -432,9 +432,9 @@ class Components(ComponentsGeneric):
         ):
             self.text(label)
 
-        _hs_session[key] = (
-            False  # set the button back to false after it has been clicked
-        )
+        _hs_session[
+            key
+        ] = False  # set the button back to false after it has been clicked
         return lambda s: True if s in ["True", "true", True] else False
 
     def grid(self, *args, **kwargs):

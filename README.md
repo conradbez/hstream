@@ -24,7 +24,7 @@ page = hs.nav(["Home", "About"],default_value="Home", key="nav")
 
 if page == "About":
     hs.markdown("For more info visit [github](github.com/conradbez/hstream)")
-    
+
 with hs.html("header"):
     hs.markdown(
         """## HStream
@@ -49,7 +49,7 @@ Whatever it may be, when you do (hopefully) reach that point just run:
 
 `python manage.py runserver` <- this is now running a full fledge Django instance you can edit as you please :)
 
-We'll put your current working app in your directory as a traditional Django app for you to add more routes onto the working HStream endpoint. 
+We'll put your current working app in your directory as a traditional Django app for you to add more routes onto the working HStream endpoint.
 
 *Caveat:* the HStream part of the server won't follow a typical Django web app structure, but you can go ahead and develop the rest of your service in traditional Django fashion.
 

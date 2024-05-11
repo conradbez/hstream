@@ -2,7 +2,7 @@
 
 Using class based html theming we're able to easily switch the look and feel of our apps.
 
-Simply add 
+Simply add
 
 ```
 

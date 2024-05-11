@@ -10,6 +10,6 @@
 
 5. `twine upload dist/*`
 
-## Kill orphaned uvicorn processes 
+## Kill orphaned uvicorn processes
 
 `kill -9 $(lsof -t -i:8000)` (or whatever port they we're using)

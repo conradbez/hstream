@@ -1,5 +1,5 @@
 from string import Template
-from typing import Literal, Tuple
+from typing import Literal
 
 from hstream.components.components import ComponentsGeneric, component_wrapper
 
@@ -153,7 +153,6 @@ CssProperties = Literal[
 
 
 class StyledComponents(ComponentsGeneric):
-
     @component_wrapper
     def set_primary_color(
         self,
