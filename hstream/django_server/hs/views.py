@@ -21,6 +21,8 @@ def request_server_stop_running_user_script(request, wait=True):
 
 
 def index(request: HttpRequest):
+    request.session.clear()
+    request.session.save()
     request_server_stop_running_user_script(request, wait=True)
     set_session_var(request, "hs_html_last_sent", "")
     return HttpResponse(format_html())
@@ -150,7 +152,7 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
                 html = users_hs_instance.doc.getvalue()
                 # TODO: if the script sets component values we should honour these as well
                 # for example a button reverting itself back to false after being clicked
-                # request.session = namespace['_hs_session']
+                request.session = namespace["__builtins__"]["_hs_session"]
                 set_session_var(request, "hs_html", html)
             except:  # noqa #E722
                 pass
@@ -173,6 +175,6 @@ def set_component_value(
     if new_value is None:
         new_value = request.GET.get("new_value")
     set_session_var(request, component_id, new_value)
-    response = HttpResponse(f"suc: {request.session[component_id]}")
+    response = HttpResponse(f"suc: {request.session[component_id]}", status=204)
     response.headers["HX-Trigger"] = "trigger_run_hs_event"
     return response

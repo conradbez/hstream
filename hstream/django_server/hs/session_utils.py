@@ -24,4 +24,5 @@ def get_session_var(request: HttpRequest, key, default=None):
 def set_session_var(request: HttpRequest, key, value):
     request.session[key] = value
     request.session.save()
+
     return request
