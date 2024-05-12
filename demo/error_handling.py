@@ -1,5 +1,4 @@
 from hstream import hs
-from time import sleep
 
 if hs.button(
     "Test raising an error",

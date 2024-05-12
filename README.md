@@ -24,7 +24,7 @@ page = hs.nav(["Home", "About"],default_value="Home", key="nav")
 
 if page == "About":
     hs.markdown("For more info visit [github](github.com/conradbez/hstream)")
-    
+
 with hs.html("header"):
     hs.markdown(
         """## HStream
@@ -39,6 +39,20 @@ And as you can see we get a fully interactive web app - ready for deployment!
 ![hstream demo](./demo/example_demo.gif)
 
 
+# Ejection to a Django app
+
+One of the key features of HStream is not having to start over when your project outgrows the linear script structure of HStream. This out growing could be due to needing to implement more complex authentication, more custom user flows or any number of other issues I have faced in building real world PoC's with Streamlit in the past.
+
+Whatever it may be, when you do (hopefully) reach that point just run:
+
+`hstream eject`
+
+`python manage.py runserver` <- this is now running a full fledge Django instance you can edit as you please :)
+
+We'll put your current working app in your directory as a traditional Django app for you to add more routes onto the working HStream endpoint.
+
+*Caveat:* the HStream part of the server won't follow a typical Django web app structure, but you can go ahead and develop the rest of your service in traditional Django fashion.
+
 # [Examples]((./demo))
 
 # Motivation
@@ -49,7 +63,7 @@ Love Streamlit but:
 - hard to reason about when extending and deploying
 - non-standard approach doesn't play nicely with existing ecosystems
 
-H-(html)-Stream is built with semantic html, CherryPy and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
+H-(html)-Stream is built with semantic html, Django and htmx to provide a fast and simple framework for rapid web app development that follows traditional frontend/server architecture (or at least follow it closer than Streamlit).
 
 ## Components
 
@@ -92,11 +106,6 @@ with hs.grid():
 
 ![hstream card demo](demo/card_example.png)
 
-- `run_server`: Once you outgrown our framework it is easy to add custom functionality or piece by piece move to a custom web app.
-
-[Server Example](./demo/server_example.md)
-
-
 # Technologies
 
 Big thanks to the following libraries in particular
@@ -105,8 +114,7 @@ Big thanks to the following libraries in particular
 - htmx
 - Yattag
 - pico css
-- CherryPy
-
+- Django
 
 # Features (WIP)
 

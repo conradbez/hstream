@@ -1,7 +1,7 @@
 from string import Template
-from typing import Literal, Tuple
-from hstream.components.components import ComponentsGeneric, component_wrapper
+from typing import Literal
 
+from hstream.components.components import ComponentsGeneric, component_wrapper
 
 Color = Literal[
     "red",
@@ -153,7 +153,6 @@ CssProperties = Literal[
 
 
 class StyledComponents(ComponentsGeneric):
-
     @component_wrapper
     def set_primary_color(
         self,

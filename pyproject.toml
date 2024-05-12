@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hstream"
-version = "0.1.1"
+version = "0.1.4"
 description = ""
 authors = ["Conrad <conradbez1@gmail.com>"]
 readme = "README.md"
@@ -10,17 +10,23 @@ hstream = "hstream.cli:cli"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-CherryPy = "^18.9.0"
 click = "^8.1.7"
 yattag = "^1.15.2"
-ipdb = "^0.13.13"
 markdown = "^3.6"
 beautifulsoup4 = "^4.12"
+django = "^5.0.6"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
 ipykernel = "^6.29.4"
 pandas = "^2.2.2"
+ipdb = "^0.13.13"
+isort = "^5.13.2"
+pre-commit = "^3.7.1"
+ruff = "^0.4.4"
+pytest = "^8.2.0"
+python-dotenv = "^1.0.1"
+playwright = "^1.43.0"
 
 [build-system]
 requires = ["poetry-core"]

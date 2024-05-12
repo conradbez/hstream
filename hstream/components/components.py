@@ -1,8 +1,8 @@
-from typing import List, Literal, Tuple
 from functools import wraps
-from pathlib import Path
 from inspect import getframeinfo, stack
-import cherrypy
+from pathlib import Path
+from typing import List
+import types
 
 
 def component_wrapper(component_fucntion):
@@ -21,7 +21,7 @@ def component_wrapper(component_fucntion):
         with self.tag(
             "div",
             ("id", f"container_for_{method_kwargs['key']}"),
-            ("hx-trigger", f"none"),
+            ("hx-trigger", "none"),
         ):
             # each component should return a function that formats the user value stored in the session
             # after sent back by htmx
@@ -30,7 +30,7 @@ def component_wrapper(component_fucntion):
             )
         # if there is no current value let subsitute the default value
 
-        if user_input_formatting_fn != None:
+        if user_input_formatting_fn is not None:
             return user_input_formatting_fn(value)
         else:
             # temporary while we get all components to return a function
@@ -59,13 +59,15 @@ class ComponentsGeneric:
                 return key
 
     def component_value(self, default_value=None, key=None, **kwargs):
-        """Writes a component to the SH front end
+        """Writes a component to the HS front end
 
         Args:
             label (_type_, optional): Must be unique within the app. Content to write to the web front end. Defaults to None.
             default_value (_type_, optional): default value the component returns before use enters value - will always be null for text or component where user doesn't input. Defaults to None.
         """
-        return cherrypy.session.get(key, default_value)
+        # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to
+        #  the django server
+        return _hs_session.get(key, default_value)  # noqa: F821
 
 
 class Components(ComponentsGeneric):
@@ -256,7 +258,7 @@ class Components(ComponentsGeneric):
                                 self.text(option)
                     with self.tag("button", ("type", "submit")):
                         self.text("submit")
-        return lambda x: list(x.keys()) if type(x) == type({}) else x
+        return lambda x: list(x.keys()) if isinstance(x, dict) else x
 
     @component_wrapper
     def slider(
@@ -291,8 +293,8 @@ class Components(ComponentsGeneric):
         default_value=None,
         **kwargs,
     ):
-        hyperscript = f"""
-        on load log #hs-nav then 
+        hyperscript = """
+        on load log #hs-nav then
         if #nav-content in #hs-nav exists
             remove #nav-content in #hs-nav
         end then
@@ -316,13 +318,14 @@ class Components(ComponentsGeneric):
             ):
                 with self.tag("ul"):
                     for item in label:
-                        if type(item) == type(lambda x: x):
+
+                        if isinstance(item, types.FunctionType):
                             # handle functions
                             item()
 
-                        elif type(item) == type(""):
+                        elif isinstance(item, str):
                             # handle string navs
-                            color = "grey" if kwargs["value"] == item else ""
+                            "grey" if kwargs["value"] == item else ""
                             with self.tag(
                                 "li",
                                 ("hx-trigger", "click"),
@@ -355,8 +358,8 @@ class Components(ComponentsGeneric):
             hs.pyplot(fig, key='myplot')
         """
 
-        from base64 import b64encode
         import io
+        from base64 import b64encode
 
         stringIObytes = io.BytesIO()
         fig.savefig(stringIObytes, format="png")
@@ -384,9 +387,10 @@ class Components(ComponentsGeneric):
         **kwargs,
     ) -> str:
         """ """
-        bool_checker_fromat_fn = (
-            lambda user_checkbox_value: user_checkbox_value == "True"
-        )
+
+        def bool_checker_fromat_fn(user_checkbox_value):
+            return user_checkbox_value == "True"
+
         value = bool_checker_fromat_fn(kwargs["value"])
         with self.tag("label", ("for", key)):
             with self.tag(
@@ -426,11 +430,14 @@ class Components(ComponentsGeneric):
             ("id", key),
             ("type", "submit") if full_width else ("type", "button"),
             ("hx-trigger", "click"),
-            ("hx-post", f"/set_component_value/?component_id={key}&new_value=true"),
+            ("hx-post", f"/set_component_value?component_id={key}&new_value=true"),
             ("hx-swap", "none"),
         ):
             self.text(label)
-        cherrypy.session[key] = False
+
+        _hs_session[  # noqa: F821
+            key
+        ] = False  # set the button back to false after it has been clicked
         return lambda s: True if s in ["True", "true", True] else False
 
     def grid(self, *args, **kwargs):

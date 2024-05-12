@@ -1,15 +1,8 @@
-import cherrypy
 import ast
-import bs4
 import collections
 from typing import Literal
 
-
-def set_session_var(component_id, new_value):
-    cherrypy.session.acquire_lock()
-    cherrypy.session[component_id] = new_value
-    cherrypy.session.release_lock()
-    return
+import bs4
 
 
 def check_duplicate_ids_is_present(html):
@@ -56,7 +49,7 @@ def pick_a_strategy(
     current_hs_ids = list(current_hs_ids_and_content.keys())
     prev_hs_ids = list(prev_hs_ids_and_content.keys())
 
-    if prev_html == None or not hs_script_running:
+    if prev_html is None or not hs_script_running:
         return "1_full_replace"
 
     elif prev_html == new_html:
