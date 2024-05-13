@@ -1,6 +1,6 @@
 from pathlib import Path
 from time import sleep
-
+import os
 from django.http import HttpRequest, HttpResponse
 
 from hstream.hs import hs as hs_type
@@ -26,6 +26,7 @@ def index(request: HttpRequest):
         request.session.save()
     request_server_stop_running_user_script(request, wait=True)
     set_session_var(request, "hs_html_last_sent", "")
+    set_session_var(request, "hs_html", "")
     return HttpResponse(format_html())
 
 
@@ -34,10 +35,8 @@ def run_hs(request):
         HttpResponse("already running")
     set_session_var(request, "hs_script_running", True)
     try:
-        import os
 
         # TODO: I'm sure theres a way to pass this filename from django through the cli :thinking
-        print(os.environ["HS_FILE_TO_RUN"])
         hs: hs_type = run_user_code_and_return_hs_instance(
             os.environ["HS_FILE_TO_RUN"], request
         )
@@ -161,6 +160,7 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
         e.args = (f"Line: {line}, code: {block}", *e.args)
         raise e
     finally:
+        users_hs_instance.clear()
         set_session_var(request, "hs_script_should_stop", False)
     return users_hs_instance
 
