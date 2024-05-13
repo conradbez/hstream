@@ -72,7 +72,7 @@ class ComponentsGeneric:
 
 class Components(ComponentsGeneric):
     @component_wrapper
-    def markdown(self, text: str, key: str = False, **kwargs) -> None:
+    def markdown(self, text: str, key: str = None, **kwargs) -> None:
         import markdown
 
         # import ipdb; ipdb.set_trace()
@@ -289,7 +289,7 @@ class Components(ComponentsGeneric):
     def nav(
         self,
         label: List[str],
-        key,
+        key: str = None,
         default_value=None,
         **kwargs,
     ):
@@ -443,7 +443,7 @@ class Components(ComponentsGeneric):
     def grid(self, *args, **kwargs):
         return self.tag("div", ("class", "grid"), *args, **kwargs)
 
-    def write_dataframe(self, df, key, striped=False, **kwargs) -> None:
+    def write_dataframe(self, df, key: str = None, striped=False, **kwargs) -> None:
         """Writes a dataframe to the
 
         Args:

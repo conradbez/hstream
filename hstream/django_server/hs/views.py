@@ -21,8 +21,9 @@ def request_server_stop_running_user_script(request, wait=True):
 
 
 def index(request: HttpRequest):
-    request.session.clear()
-    request.session.save()
+    if len(request.session.keys()) > 0:
+        request.session.clear()
+        request.session.save()
     request_server_stop_running_user_script(request, wait=True)
     set_session_var(request, "hs_html_last_sent", "")
     return HttpResponse(format_html())
