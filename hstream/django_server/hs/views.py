@@ -106,6 +106,7 @@ def partial_or_full_html_content(request):
             if new_value:
                 if old_value != new_value:
                     set_session_var(
+                        request,
                         "hs_html_partial_keys_updated",
                         get_session_var(request, "hs_html_partial_keys_updated", [])
                         + [old_key],
@@ -176,6 +177,8 @@ def set_component_value(
     if new_value is None:
         new_value = request.GET.get("new_value")
     set_session_var(request, component_id, new_value)
-    response = HttpResponse(f"suc: {request.session[component_id]}", status=204)
+    response = HttpResponse(f"suc: {request.session[component_id]}", status=200)
+    response.headers["HX-Reswap"] = "none"
+    # response.headers["HX-Retarget"] = "none"
     response.headers["HX-Trigger"] = "trigger_run_hs_event"
     return response
