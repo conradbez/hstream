@@ -150,11 +150,21 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
                 for var_name, var_value in namespace.items():
                     if var_value.__class__.__name__ == "hs":
                         users_hs_instance = var_value
+                if users_hs_instance is None:
+                    raise ValueError(
+                        "Seems your file does not import hs `from hstream import hs`"
+                    )
                 html = users_hs_instance.doc.getvalue()
                 # TODO: if the script sets component values we should honour these as well
                 # for example a button reverting itself back to false after being clicked
                 request.session = namespace["__builtins__"]["_hs_session"]
                 set_session_var(request, "hs_html", html)
+            except ValueError as e:
+                if (
+                    e.args[0]
+                    == "Seems your file does not import hs `from hstream import hs`"
+                ):
+                    raise e
             except:  # noqa #E722
                 pass
     except Exception as e:
