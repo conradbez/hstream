@@ -77,10 +77,57 @@ def init():
     click.echo(click.style("     hstream run example.py", fg="green"))
 
 
+@click.command()
+@click.argument("file", default=False)
+def deploy(file=False):
+    if not file:
+        file = click.prompt(
+            "Enter the file containing the hstream app you want to deploy ",
+            default="./app",
+        )
+    if Path("Dockerfile").exists():
+        click.echo(
+            click.style("Dockerfile already exist - can't over write", fg="red"),
+            err=True,
+        )
+        return
+    else:
+        with open("Dockerfile", "w") as f:
+            f.write(DOCKERFILE.format(filename=file))
+
+    click.echo("Dockerfile created successfully")
+    click.echo(
+        """We recommend deploying on Railway, which you should be able to do with """
+    )
+    click.echo(
+        click.style(
+            f"""
+                {"brew install railway" if shutil.which("brew") else "Follow: https://docs.railway.app/guides/cli for install railway cli"}
+                railway login
+                railway link
+                railway up""",
+            fg="green",
+        )
+    )
+
+
 cli.add_command(eject)
+cli.add_command(deploy)
 cli.add_command(run)
 cli.add_command(init)
 
 
 if __name__ == "__main__":
     cli()
+
+
+DOCKERFILE = """
+FROM python:3.11-slim
+WORKDIR /code
+RUN pip install --upgrade pip
+RUN pip install hstream
+# RUN pip install -r requirements.txt # uncomment if you have a requirements.txt
+# COPY requirements.txt /code/
+COPY . /code/
+CMD hstream run {filename}
+"""
