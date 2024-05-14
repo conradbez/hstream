@@ -97,7 +97,10 @@ def deploy(file=False):
 
     click.echo("Dockerfile created successfully")
     click.echo(
-        """We recommend deploying on Railway, which you should be able to do with """
+        """We recommend deploying on Railway, which you should be able to do with:"""
+    )
+    click.echo(
+        "                Create a Railway account if you don't have one: https://railway.app?referralCode=1OLHEp"
     )
     click.echo(
         click.style(
