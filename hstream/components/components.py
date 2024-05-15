@@ -48,6 +48,7 @@ class ComponentsGeneric:
             key (str, optional): Unique key for the component. Defaults to None.
             default_value (Any, optional): Default value for the navigation bar. Defaults to None.
         Concatenate the function's call line and arguments to get a key.
+        """
 
         * Gotcha * : Loop will be on the same line and therefore get the same key,
                      we need the user to specify a key in that case.
@@ -110,7 +111,7 @@ class Components(ComponentsGeneric):
         Returns:
             str: Text inputted by user.
         Returns:
-            str: text inputted by user
+            str: Text inputted by user.
         """
         with self.tag("label"):
             self.text(label)
@@ -379,8 +380,8 @@ class Components(ComponentsGeneric):
             key (str, optional): Unique key for the component. Defaults to None.
 
         Returns:
-            None
-        Example:
+            None.
+        Example::
             import matplotlib.pyplot as plt
             import numpy as np
             x = np.arange(0,4*np.pi,0.1)   # start,stop,step
@@ -474,6 +475,7 @@ class Components(ComponentsGeneric):
 
         Returns:
             bool: True if the button is clicked, otherwise False.
+        """
         """
         with self.tag(
             "button",
