@@ -20,10 +20,6 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
 
-    - name: Install Playwright browsers
-      run: |
-        npx playwright install
-
     - name: Install dependencies with Poetry
       run: |
         poetry install --with dev
@@ -35,6 +31,10 @@ jobs:
     - name: Run pre-commit
       run: |
         poetry run pre-commit run --all-files
+
+    - name: Install Playwright browsers
+      run: |
+        playwright install
 
     - name: Run tests
       run: |
