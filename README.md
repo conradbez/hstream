@@ -108,6 +108,8 @@ with hs.grid():
 
 ![hstream card demo](demo/card_example.png)
 
+`hstream eject`: gives a dockerfile and step by step commands to deploy to Railway
+
 # Technologies
 
 Big thanks to the following libraries in particular
