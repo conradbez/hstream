@@ -31,6 +31,10 @@ jobs:
         pip install pre-commit
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    - name: Install the codebase as a pip package
+      run: |
+        pip install .
+
     - name: Run pre-commit
       run: |
         pre-commit run --all-files
