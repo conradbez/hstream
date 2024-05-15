@@ -1,9 +1,6 @@
 from time import sleep
-from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 from .conftest import write_py_script
-
-load_dotenv()
 
 
 def do_content_in_page(content):
