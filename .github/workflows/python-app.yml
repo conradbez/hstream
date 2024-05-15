@@ -16,6 +16,10 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Export dependencies from Poetry
+      run: |
+        poetry export -f requirements.txt --output requirements.txt
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
