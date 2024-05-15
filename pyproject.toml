@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hstream"
-version = "0.1.52"
+version = "0.1.53"
 description = ""
 authors = ["Conrad <conradbez1@gmail.com>"]
 readme = "README.md"
