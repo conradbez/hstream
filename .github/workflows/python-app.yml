@@ -22,7 +22,7 @@ jobs:
 
     - name: Install dependencies with Poetry
       run: |
-        poetry install --no-root --with dev
+        poetry install --with dev
 
     - name: Install pre-commit
       run: |
