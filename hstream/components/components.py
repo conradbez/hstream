@@ -193,15 +193,15 @@ class Components(ComponentsGeneric):
     #     self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
     # ) -> List[int]:
     #     """
-    #     Dropdown component for user to select multiple options from a list and returns a comma separated string of the  of selected options
+        """Dropdown component for user to select multiple options from a list.
 
-    #     Args:
-    #         label (List[str]): Options to display to user
-    #         default_value (str, optional): Value to select when component load the first time. Defaults to False.
-    #         key (str, optional): Unique key - default is set based on label (options) so set this if there are multiple inputs with same label argument. Defaults to None.
+        Args:
+            label (List[str]): Options to display to user.
+            default_value (List[int], optional): Values to select when component loads the first time. Defaults to [].
+            key (str, optional): Unique key for the component. Defaults to None.
 
-    #     Returns:
-    #         str: Selected value
+        Returns:
+            List[int]: Selected values.
     #     """
 
     #     assert type(label) == type([]) and type(default_value) == type(
