@@ -32,13 +32,13 @@ jobs:
       run: |
         poetry run pre-commit run --all-files
 
-    # - name: Install Playwright browsers
-    #   run: |
-    #     poetry run playwright install
+    - name: Install Playwright browsers
+      run: |
+        poetry run playwright install
 
-    # - name: Run tests
-    #   run: |
-    #     poetry run pytest
+    - name: Run tests
+      run: |
+        poetry run pytest
 
     - name: Build package
       run: |

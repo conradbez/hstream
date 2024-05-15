@@ -14,5 +14,6 @@ def run_server(
     os.environ["HS_FILE_TO_RUN"] = str(file)
     command = f"python {path_to_hstream_dir}/django_server/manage.py runserver"
     if os.environ.get("PORT", False):
+        print(f"found port in env, using port {os.environ['PORT']}")
         command += f" 0.0.0.0:{os.environ['PORT']}"
     os.system(command)
