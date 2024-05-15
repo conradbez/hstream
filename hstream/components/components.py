@@ -193,16 +193,16 @@ class Components(ComponentsGeneric):
     #     self, label: List[str], default_value: List[int] = [], key: str = None, **kwargs
     # ) -> List[int]:
     #     """
-        """Dropdown component for user to select multiple options from a list.
+    #     """Dropdown component for user to select multiple options from a list.
 
-        Args:
-            label (List[str]): Options to display to user.
-            default_value (List[int], optional): Values to select when component loads the first time. Defaults to [].
-            key (str, optional): Unique key for the component. Defaults to None.
+    #     Args:
+    #         label (List[str]): Options to display to user.
+    #         default_value (List[int], optional): Values to select when component loads the first time. Defaults to [].
+    #         key (str, optional): Unique key for the component. Defaults to None.
 
-        Returns:
-            List[int]: Selected values.
-    #     """
+    #     Returns:
+    #         List[int]: Selected values.
+    # #     """
 
     #     assert type(label) == type([]) and type(default_value) == type(
     #         []
@@ -298,6 +298,7 @@ class Components(ComponentsGeneric):
 
         Returns:
             str: Value selected by user.
+        """
         with self.tag("label", ("for", key)):
             self.text(label)
         with self.tag(
@@ -426,7 +427,7 @@ class Components(ComponentsGeneric):
 
         Returns:
             str: Boolean value inputted by user.
-
+        """
         def bool_checker_fromat_fn(user_checkbox_value):
             return user_checkbox_value == "True"
 
@@ -473,6 +474,7 @@ class Components(ComponentsGeneric):
 
         Returns:
             bool: True if the button is clicked, otherwise False.
+        """
         with self.tag(
             "button",
             ("id", key),
