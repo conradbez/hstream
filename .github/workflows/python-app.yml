@@ -20,10 +20,6 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
 
-    - name: Export dependencies from Poetry
-      run: |
-        poetry export -f requirements.txt --output requirements.txt
-
     - name: Install dependencies with Poetry
       run: |
         poetry install --no-root --with dev
