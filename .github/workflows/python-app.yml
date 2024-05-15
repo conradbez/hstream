@@ -38,7 +38,7 @@ jobs:
 
     - name: Run tests
       run: |
-        poetry run pytest
+        poetry run pytest --reruns 3 # githubs playwright sometimes fails
 
     - name: Build package
       run: |

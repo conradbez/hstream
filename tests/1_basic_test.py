@@ -72,7 +72,6 @@ hs.markdown(text)
 
 
 def test_number_input():
-    sleep(0)
     with sync_playwright() as playwright:
         write_py_script(
             contents="""
