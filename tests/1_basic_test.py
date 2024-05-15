@@ -5,6 +5,7 @@ from .conftest import write_py_script
 
 def do_content_in_page(content):
     with sync_playwright() as playwright:
+        sleep(10)  # wait for github server to start
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("http://127.0.0.1:9000/")
@@ -15,11 +16,13 @@ def do_content_in_page(content):
 
 
 def test_blank_page():
+    sleep(0)
     write_py_script(contents="from hstream import hs \nhs.markdown('Hello world')")
     do_content_in_page(content="Hello world")
 
 
 def test_button():
+    sleep(0)
     with sync_playwright() as playwright:
         write_py_script(
             contents="""
@@ -46,6 +49,7 @@ if hs.button('Press me'):
 
 
 def test_text():
+    sleep(0)
     with sync_playwright() as playwright:
         write_py_script(
             contents="""
