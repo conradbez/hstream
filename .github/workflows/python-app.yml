@@ -34,7 +34,7 @@ jobs:
 
     - name: Install Playwright browsers
       run: |
-        playwright install
+        poetry run playwright install
 
     - name: Run tests
       run: |
