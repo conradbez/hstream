@@ -16,6 +16,10 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+
     - name: Export dependencies from Poetry
       run: |
         poetry export -f requirements.txt --output requirements.txt
