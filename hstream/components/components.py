@@ -429,10 +429,10 @@ class Components(ComponentsGeneric):
             str: Boolean value inputted by user.
         """
 
-        def bool_checker_fromat_fn(user_checkbox_value):
-            return user_checkbox_value == "True"
+        def bool_checker_format_fn(user_checkbox_value):
+            return str(user_checkbox_value).lower() == "true"
 
-        value = bool_checker_fromat_fn(kwargs["value"])
+        value = bool_checker_format_fn(kwargs["value"])
         with self.tag("label", ("for", key)):
             with self.tag(
                 "input",
@@ -445,16 +445,16 @@ class Components(ComponentsGeneric):
                 # annoyingly a blank checkbox is not sent back in a submit event,
                 # so we attach the state of the checkbox here
                 # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
-                # ("hx-vals", "js:{" + key + ": event.srcElement.checked}"),
-                # ("hx-post", f"/set_component_value?component_id={key}"),
-                (
-                    "hx-post",
-                    f"/set_component_value/?component_id={key}&new_value={not value}",
-                ),
+                ("hx-vals", "js:{new_value: event.srcElement.checked}"),
+                ("hx-post", f"/set_component_value?component_id={key}"),
+                # (
+                #     "hx-get",
+                #     f"/set_component_value/?component_id={key}&new_value={not value}",
+                # ),
             ):
                 pass
             self.text(label)
-        return bool_checker_fromat_fn
+        return bool_checker_format_fn
 
     @component_wrapper
     def button(
