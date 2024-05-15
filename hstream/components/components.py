@@ -41,12 +41,17 @@ def component_wrapper(component_fucntion):
 
 class ComponentsGeneric:
     def get_key_based_on_call(self, message):
-        """
-        Get the concat the functions call line and arguments to get a key
+        """Displays a navigation bar with a list of items.
 
-        * Gothca * : loop will be on the same line and therefor get the same key,
-                     we need the user to specify a key in that case
-                     this case is not checked for atm
+        Args:
+            label (List[str]): List of items to display in the navigation bar.
+            key (str, optional): Unique key for the component. Defaults to None.
+            default_value (Any, optional): Default value for the navigation bar. Defaults to None.
+        Concatenate the function's call line and arguments to get a key.
+
+        * Gotcha * : Loop will be on the same line and therefore get the same key,
+                     we need the user to specify a key in that case.
+                     This case is not checked for at the moment.
         """
         for i in range(20):
             # import ipdb; ipdb.set_trace()
@@ -59,11 +64,14 @@ class ComponentsGeneric:
                 return key
 
     def component_value(self, default_value=None, key=None, **kwargs):
-        """Writes a component to the HS front end
+        """Get the value of a component from the HS front end.
 
         Args:
-            label (_type_, optional): Must be unique within the app. Content to write to the web front end. Defaults to None.
-            default_value (_type_, optional): default value the component returns before use enters value - will always be null for text or component where user doesn't input. Defaults to None.
+            default_value (Any, optional): Default value the component returns before user enters value. Defaults to None.
+            key (str, optional): Unique key for the component. Defaults to None.
+
+        Returns:
+            Any: The value of the component.
         """
         # `_hs_session` is injected by the django view - it contains values the user has inputted and sent to
         #  the django server
@@ -91,11 +99,16 @@ class Components(ComponentsGeneric):
         placeholder: str = False,
         **kwargs,
     ) -> str:
-        """Displays text input for user to input text
+        """Displays text input for user to input text.
 
         Args:
-            text (str): label to display to user describing the text input
-            default_value (str): value innitially entered into text box
+            label (str): Label to display to user describing the text input.
+            default_value (str, optional): Value initially entered into text box. Defaults to "".
+            key (str, optional): Unique key for the component. Defaults to None.
+            placeholder (str, optional): Placeholder text for the input box. Defaults to False.
+
+        Returns:
+            str: Text inputted by user.
         Returns:
             str: text inputted by user
         """
@@ -122,10 +135,15 @@ class Components(ComponentsGeneric):
     def number_input(
         self, label: str, default_value: int = 0, key: str = None, **kwargs
     ) -> str:
-        """Displays text input for user to input text
+        """Displays number input for user to input a number.
+
         Args:
-            text (str): label to display to user describing the text input
-            default_value (str): value innitially entered into text box
+            label (str): Label to display to user describing the number input.
+            default_value (int, optional): Value initially entered into number box. Defaults to 0.
+            key (str, optional): Unique key for the component. Defaults to None.
+
+        Returns:
+            str: Number inputted by user.
         Returns:
             str: text inputted by user
         """
@@ -145,16 +163,15 @@ class Components(ComponentsGeneric):
     def select_box(
         self, label: List[str], default_value: str = None, key: str = None, **kwargs
     ) -> str:
-        """
-        Dropdown component for user to select from a list of options
+        """Dropdown component for user to select from a list of options.
 
         Args:
-            label (List[str]): Options to display to user
-            default_value (str, optional): Value to select when component load the first time. Defaults to False.
-            key (str, optional): Unique key - default is set based on label (options) so set this if there are multiple inputs with same label argument. Defaults to None.
+            label (List[str]): Options to display to user.
+            default_value (str, optional): Value to select when component loads the first time. Defaults to None.
+            key (str, optional): Unique key for the component. Defaults to None.
 
         Returns:
-            str: Selected value
+            str: Selected value.
         """
         # HStream developer note: The default value logic is handled by the `@component_wrapper`
         with self.doc.select(
@@ -270,7 +287,17 @@ class Components(ComponentsGeneric):
         key: str = None,
         **kwargs,
     ) -> str:
-        """ """
+        """Displays a slider for user to input a value within a range.
+
+        Args:
+            label (str): Label to display to user describing the slider.
+            minValue (int): Minimum value of the slider.
+            maxValue (int): Maximum value of the slider.
+            default_value (int, optional): Value initially set on the slider. Defaults to None.
+            key (str, optional): Unique key for the component. Defaults to None.
+
+        Returns:
+            str: Value selected by user.
         with self.tag("label", ("for", key)):
             self.text(label)
         with self.tag(
@@ -343,11 +370,15 @@ class Components(ComponentsGeneric):
 
     @component_wrapper
     def pyplot(self, fig, height="200px", key: str = None, **kwargs) -> None:
-        """Displays matplotlib plot to user
+        """Displays a matplotlib plot to the user.
+
         Args:
-            fig (matplotlib.figure.Figure): label to display to user describing the text input
+            fig (matplotlib.figure.Figure): Matplotlib figure to display.
+            height (str, optional): Height of the plot. Defaults to "200px".
+            key (str, optional): Unique key for the component. Defaults to None.
+
         Returns:
-            str: text inputted by user
+            None
         Example:
             import matplotlib.pyplot as plt
             import numpy as np
@@ -386,7 +417,15 @@ class Components(ComponentsGeneric):
         key: str = None,
         **kwargs,
     ) -> str:
-        """ """
+        """Displays a checkbox for user to input a boolean value.
+
+        Args:
+            label (str): Label to display to user describing the checkbox.
+            default_value (bool, optional): Value initially set on the checkbox. Defaults to False.
+            key (str, optional): Unique key for the component. Defaults to None.
+
+        Returns:
+            str: Boolean value inputted by user.
 
         def bool_checker_fromat_fn(user_checkbox_value):
             return user_checkbox_value == "True"
@@ -424,7 +463,16 @@ class Components(ComponentsGeneric):
         full_width: bool = False,
         **kwargs,
     ) -> bool:
-        """ """
+        """Displays a button for user to click.
+
+        Args:
+            label (str): Label to display on the button.
+            default_value (bool, optional): Value initially set on the button. Defaults to False.
+            key (str, optional): Unique key for the component. Defaults to None.
+            full_width (bool, optional): Whether the button should take the full width of its container. Defaults to False.
+
+        Returns:
+            bool: True if the button is clicked, otherwise False.
         with self.tag(
             "button",
             ("id", key),
@@ -444,11 +492,15 @@ class Components(ComponentsGeneric):
         return self.tag("div", ("class", "grid"), *args, **kwargs)
 
     def write_dataframe(self, df, key: str = None, striped=False, **kwargs) -> None:
-        """Writes a dataframe to the
+        """Writes a dataframe to the web front end.
 
         Args:
-            df (pd.DataFrame): Dataframe to write to the web front end
-            key (str): Must be unique within the app. Used to reference the dataframe in the front end
+            df (pd.DataFrame): Dataframe to write to the web front end.
+            key (str, optional): Unique key for the component. Defaults to None.
+            striped (bool, optional): Whether to add striped styling to the table. Defaults to False.
+
+        Returns:
+            None
         """
         with self.tag(
             "div",
