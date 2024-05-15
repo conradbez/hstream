@@ -24,16 +24,9 @@ jobs:
       run: |
         poetry export -f requirements.txt --output requirements.txt
 
-    - name: Install dependencies
+    - name: Install dependencies with Poetry
       run: |
-        python -m pip install --upgrade pip
-        pip install pytest
-        pip install pre-commit
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Install the codebase as a pip package
-      run: |
-        pip install .
+        poetry install --no-root --with dev
 
     - name: Run pre-commit
       run: |
