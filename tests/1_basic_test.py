@@ -8,7 +8,7 @@ load_dotenv()
 
 def do_content_in_page(content):
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("http://127.0.0.1:8000/")
         sleep(2)
@@ -32,7 +32,7 @@ if hs.button('Press me'):
     hs.markdown('pressed')
 """
         )
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("http://127.0.0.1:8000/")
         assert "pressed" not in page.inner_text("body")
@@ -57,7 +57,7 @@ text = hs.text_input('Enter text')
 hs.markdown(text)
 """
         )
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("http://127.0.0.1:8000/")
         text_input = page.locator("input")
