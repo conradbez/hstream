@@ -359,7 +359,7 @@ class Components(ComponentsGeneric):
                                 ("hx-trigger", "click"),
                                 (
                                     "hx-post",
-                                    f"/set_component_value/?component_id={key}&new_value={item}",
+                                    f"/set_component_value?component_id={key}&new_value={item}",
                                 ),
                                 ("hx-swap", "none"),
                             ):
