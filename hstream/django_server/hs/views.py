@@ -178,9 +178,10 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
 def set_component_value(
     request: HttpRequest,
 ):
-    # import ipdb; ipdb.set_trace()
     component_id = request.GET.get("component_id")
-    new_value = request.POST.get("new_value")
+    # we neeed to convert the request.POST to a dict to handle multiple values coming back
+    new_value = dict(request.POST).get("new_value")
+    # import ipdb; ipdb.set_trace()
 
     request_server_stop_running_user_script(request, wait=True)
     if new_value is None:
