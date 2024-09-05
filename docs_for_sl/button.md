@@ -543,3 +543,28 @@ This example demonstrates how to style buttons using a custom class. This is the
   }
 </style>
 ```
+# Shoelace Button
+
+The Shoelace button component is a customizable button that can be used in various contexts within your application.
+
+## Usage
+
+```python
+hs.sl_button(label: str, variant: str = "default", size: str = "medium", key: str = None, **kwargs)
+```
+
+## Parameters
+
+- `label` (str): The text to display on the button.
+- `variant` (str, optional): The button's visual variant. Options: "default", "primary", "success", "neutral", "warning", "danger". Default is "default".
+- `size` (str, optional): The button's size. Options: "small", "medium", "large". Default is "medium".
+- `key` (str, optional): A unique identifier for the button. Default is None.
+- `**kwargs`: Additional attributes to pass to the button element.
+
+## Example
+
+```python
+hs.sl_button("Click me!", variant="primary", size="large", key="my_button")
+```
+
+This will create a large primary button with the text "Click me!".
