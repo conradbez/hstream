@@ -4,7 +4,7 @@ from typing import List
 class ShoelaceComponents(ComponentsGeneric):
     @component_wrapper
     def sl_button(
-        self, label: str, variant: str = "default", size: str = "medium", key: str = None, **kwargs
+        self, label: str, default_value: List[str] = None, key: str = None, **kwargs
     ) -> None:
         """
         Render a Shoelace button component.
@@ -16,15 +16,20 @@ class ShoelaceComponents(ComponentsGeneric):
             key (str, optional): A unique identifier for the button. Default is None.
             **kwargs: Additional attributes to pass to the button element.
         """
+        variant: str = kwargs.get("variant", "default") 
+        size: str = kwargs.get("size", "medium")
         with self.tag(
             "sl-button",
             ("variant", variant),
             ("size", size),
-            ("hx-post", f"/set_component_value?component_id={key}"),
+            ("hx-post", f"/set_component_value?component_id={key}&new_value=true"),
             ("hx-trigger", "click"),
-            **kwargs
         ):
             self.doc.text(label)
+        _hs_session[  # noqa: F821
+            key
+        ] = False  # set the button back to false after it has been clicked
+        return lambda s: True if s in ["True", "true", True] else False
     @component_wrapper
     def sl_multiselect(
         self, label: List[str], default_value: List[str] = None, key: str = None, **kwargs
