@@ -1,10 +1,12 @@
 from hstream.components.components import ComponentsGeneric, component_wrapper
 from typing import List
 from hstream.components.shoelace.card import sl_card
+from hstream.components.shoelace.format_date import sl_format_date
 
 class ShoelaceComponents(ComponentsGeneric):
     
     sl_card = sl_card
+    sl_format_date = sl_format_date
 
     @component_wrapper
     def sl_button(
