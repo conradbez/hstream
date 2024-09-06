@@ -1,5 +1,5 @@
 from hstream.components.components import ComponentsGeneric, component_wrapper
-from typing import List
+from typing import List, Optional, Any
 from hstream.components.shoelace.card import sl_card
 from hstream.components.shoelace.format_date import sl_format_date
 
@@ -36,10 +36,50 @@ class ShoelaceComponents(ComponentsGeneric):
             key
         ] = False  # set the button back to false after it has been clicked
         return lambda s: True if s in ["True", "true", True] else False
+
+    @component_wrapper
+    def sl_input(
+        self, label: str, default_value: Any = None, key: Optional[str] = None, **kwargs
+    ) -> None:
+        """
+        Render a Shoelace input component.
+
+        Args:
+            label (str): The label for the input field.
+            default_value (Any, optional): The default value for the input. Default is None.
+            key (str, optional): A unique identifier for the input. Default is None.
+            **kwargs: Additional attributes to pass to the input element.
+                Possible attributes include:
+                - type: The type of input (e.g., "text", "number", "email", etc.)
+                - placeholder: Placeholder text for the input
+                - size: The size of the input field
+                - disabled: Whether the input is disabled
+                - readonly: Whether the input is read-only
+        """
+        input_type = kwargs.get("type", "text")
+        placeholder = kwargs.get("placeholder", "")
+        size = kwargs.get("size", "medium")
+        disabled = "true" if kwargs.get("disabled", False) else "false"
+        readonly = "true" if kwargs.get("readonly", False) else "false"
+
+        with self.tag(
+            "sl-input",
+            ("type", input_type),
+            ("label", label),
+            ("placeholder", placeholder),
+            ("size", size),
+            ("disabled", disabled),
+            ("readonly", readonly),
+            ("value", str(default_value) if default_value is not None else ""),
+            ("hx-post", f"/set_component_value?component_id={key}"),
+            ("hx-trigger", "sl-change"),
+        ):
+            pass
+
     @component_wrapper
     def sl_multiselect(
         self, label: List[str], default_value: List[str] = None, key: str = None, **kwargs
-        ) -> None:
+    ) -> None:
         options = [ f'<sl-option value="{option}">{option}</sl-option>' for option in label]
         assert default_value is None or all([d in label for d in default_value]), f"Default value must be in options: {default_value} not in {label} - default_value must also be itterable"
         value = ' '.join(list(kwargs["value"] )) if default_value else ''
