@@ -118,7 +118,7 @@ class Components(ComponentsGeneric):
             "input",
             ("hx-ext", "debug"),
             ("name", "new_value"),
-            ("hx-post", f"/set_component_value?component_id={key}"),
+            ("hx-get", f"/set_component_value?component_id={key}"),
             ("hx-swap", "none"),
             ("type", "text"),
         ):
@@ -152,7 +152,7 @@ class Components(ComponentsGeneric):
         with self.tag(
             "input",
             ("name", "new_value"),
-            ("hx-post", f"/set_component_value?component_id={key}"),
+            ("hx-get", f"/set_component_value?component_id={key}"),
             ("hx-trigger", "focusout"),
             ("type", "number"),
             ("value", str(kwargs["value"])),
@@ -176,7 +176,7 @@ class Components(ComponentsGeneric):
         # HStream developer note: The default value logic is handled by the `@component_wrapper`
         with self.doc.select(
             ("name", "new_value"),
-            ("hx-post", f"/set_component_value?component_id={key}"),
+            ("hx-get", f"/set_component_value?component_id={key}"),
         ):
             for value in label:
                 with self.tag(
@@ -250,7 +250,7 @@ class Components(ComponentsGeneric):
             with self.tag(
                 "details",
                 ("class", "dropdown"),
-                ("name", "new_value"),
+                ("name", "new_multi_value"),
                 ("multiple", ""),
             ):
                 with self.tag("summary", ("style", "overflow:hidden;")):
@@ -358,7 +358,7 @@ class Components(ComponentsGeneric):
                                 "li",
                                 ("hx-trigger", "click"),
                                 (
-                                    "hx-post",
+                                    "hx-get",
                                     f"/set_component_value/?component_id={key}&new_value={item}",
                                 ),
                                 ("hx-swap", "none"),
@@ -446,7 +446,7 @@ class Components(ComponentsGeneric):
                 # so we attach the state of the checkbox here
                 # https://htmx.org/attributes/hx-vals/, https://github.com/bigskysoftware/htmx/issues/894
                 ("hx-vals", "js:{new_value: event.srcElement.checked}"),
-                ("hx-post", f"/set_component_value?component_id={key}"),
+                ("hx-get", f"/set_component_value?component_id={key}"),
                 # (
                 #     "hx-get",
                 #     f"/set_component_value/?component_id={key}&new_value={not value}",
@@ -481,7 +481,7 @@ class Components(ComponentsGeneric):
             ("id", key),
             ("type", "submit") if full_width else ("type", "button"),
             ("hx-trigger", "click"),
-            ("hx-post", f"/set_component_value?component_id={key}&new_value=true"),
+            ("hx-get", f"/set_component_value?component_id={key}&new_value=true"),
             ("hx-swap", "none"),
         ):
             self.text(label)
