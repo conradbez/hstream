@@ -28,7 +28,7 @@ class ShoelaceComponents(ComponentsGeneric):
             "sl-button",
             ("variant", variant),
             ("size", size),
-            ("hx-post", f"/set_component_value?component_id={key}&new_value=true"),
+            ("hx-get", f"/set_component_value?component_id={key}&new_value=true"),
             ("hx-trigger", "click"),
         ):
             self.doc.text(label)
@@ -59,22 +59,23 @@ class ShoelaceComponents(ComponentsGeneric):
         input_type = kwargs.get("type", "text")
         placeholder = kwargs.get("placeholder", "")
         size = kwargs.get("size", "medium")
-        disabled = "true" if kwargs.get("disabled", False) else "false"
-        readonly = "true" if kwargs.get("readonly", False) else "false"
-
+        disabled = "disabled" if kwargs.get("disabled", False) else ""
+        readonly = "readonly" if kwargs.get("readonly", False) else "false"
         with self.tag(
             "sl-input",
+            ("name", "new_value"),
             ("type", input_type),
             ("label", label),
             ("placeholder", placeholder),
             ("size", size),
-            ("disabled", disabled),
-            ("readonly", readonly),
-            ("value", str(default_value) if default_value is not None else ""),
-            ("hx-post", f"/set_component_value?component_id={key}"),
+            (disabled, ""),
+            (readonly, ""),
+            ("value", str(kwargs['value']) if kwargs['value'] is not None else ""),
+            ("hx-get", f"/set_component_value?component_id={key}"),
             ("hx-trigger", "sl-change"),
         ):
             pass
+        return lambda x: x[0] if type(x) == list else x
 
     @component_wrapper
     def sl_multiselect(
