@@ -132,3 +132,85 @@ hs.text_input('text')
         sleep(2)
         assert "True" in page.inner_text("body")
         browser.close()
+
+def test_sl_button():
+    sleep(0)
+    with sync_playwright() as playwright:
+        write_py_script(
+            contents="""
+from hstream import hs
+if hs.sl_button('Click me', variant='primary'):
+    hs.markdown('Button clicked!')
+"""
+        )
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("http://127.0.0.1:9000/")
+        button = page.locator('sl-button:has-text("Click me")')
+        assert button.get_attribute('variant') == 'primary'
+        assert "Button clicked!" not in page.inner_text("body")
+        button.click()
+        sleep(2)
+        assert "Button clicked!" in page.inner_text("body")
+        browser.close()
+
+def test_sl_input():
+    sleep(0)
+    with sync_playwright() as playwright:
+        write_py_script(
+            contents="""
+from hstream import hs
+text = hs.sl_input('Enter text', placeholder='Type here')
+hs.markdown(text)
+"""
+        )
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("http://127.0.0.1:9000/")
+        input_field = page.locator("sl-input")
+        assert input_field.get_attribute('placeholder') == 'Type here'
+        input_field.fill("Hello, Shoelace!")
+        input_field.press("Enter")
+        sleep(2)
+        assert "Hello, Shoelace!" in page.inner_text("body")
+        browser.close()
+
+def test_sl_format_date():
+    sleep(0)
+    with sync_playwright() as playwright:
+        write_py_script(
+            contents="""
+from hstream import hs
+hs.sl_format_date('2023-05-15', month='long', day='numeric', year='numeric')
+"""
+        )
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("http://127.0.0.1:9000/")
+        formatted_date = page.locator("sl-format-date")
+        sleep(2)
+        assert "May 15, 2023" in page.inner_text("body")
+        browser.close()
+
+def test_sl_multiselect():
+    sleep(0)
+    with sync_playwright() as playwright:
+        write_py_script(
+            contents="""
+from hstream import hs
+options = ['Apple', 'Banana', 'Cherry']
+selected = hs.sl_multiselect(options, default_value=['Apple'])
+hs.markdown(str(selected))
+"""
+        )
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto("http://127.0.0.1:9000/")
+        multiselect = page.locator("sl-select")
+        assert "Apple" in multiselect.inner_text()
+        multiselect.click()
+        page.locator("sl-option", has_text="Cherry").click()
+        page.keyboard.press("Escape")
+        sleep(2)
+        assert "['Apple', 'Cherry']" in page.inner_text("body")
+        browser.close()
