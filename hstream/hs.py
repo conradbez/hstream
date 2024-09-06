@@ -3,7 +3,7 @@ from yattag import Doc
 # from hstream.components.text_input import text_input
 from hstream.components.components import Components
 from hstream.components.styling_components import StyledComponents
-
+from hstream.components.shoelace_components import ShoelaceComponents
 
 class HSDoc(Doc):
     class Tag(Doc.Tag):
@@ -13,7 +13,7 @@ class HSDoc(Doc):
             return res
 
 
-class hs(Components, StyledComponents):
+class hs(Components, StyledComponents, ShoelaceComponents):
     def __init__(self) -> (HSDoc, HSDoc.tag, HSDoc.text):
         self.doc, self.tag, self.text = HSDoc().tagtext()
 
