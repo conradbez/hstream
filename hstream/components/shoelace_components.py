@@ -1,7 +1,11 @@
 from hstream.components.components import ComponentsGeneric, component_wrapper
 from typing import List
+from hstream.components.shoelace.card import sl_card
 
 class ShoelaceComponents(ComponentsGeneric):
+    
+    sl_card = sl_card
+
     @component_wrapper
     def sl_button(
         self, label: str, default_value: List[str] = None, key: str = None, **kwargs
