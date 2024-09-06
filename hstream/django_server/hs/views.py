@@ -179,11 +179,13 @@ def set_component_value(
     request: HttpRequest,
 ):
     component_id = request.GET.get("component_id")
+    # POST for multi values
     # we neeed to convert the request.POST to a dict to handle multiple values coming back
-    new_value = dict(request.POST).get("new_value")
-    # import ipdb; ipdb.set_trace()
+    new_value = dict(request.POST).get("new_multi_value")
 
     request_server_stop_running_user_script(request, wait=True)
+    
+    # GET for single values
     if new_value is None:
         new_value = request.GET.get("new_value")
     set_session_var(request, component_id, new_value)
