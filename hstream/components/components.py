@@ -515,3 +515,58 @@ class Components(ComponentsGeneric):
                 .replace('class="dataframe"', f'class="{striped}"')
             )
             self.doc.asis(html)
+            
+    @component_wrapper
+    def file_upload(
+        self,
+        label: str,
+        accept: str = "*",
+        key: str = None,
+        **kwargs,
+    ) -> str:  # Now returns filename string instead of bytes
+        """Displays file upload input for user to upload files.
+
+        Args:
+            label (str): Label to display to user describing the file upload.
+            accept (str, optional): File types to accept (e.g., ".3mf,.gcode"). Defaults to "*".
+            key (str, optional): Unique key for the component. Defaults to None.
+
+        Returns:
+            str: Filename of uploaded file, or None if no file uploaded.
+        """
+        with self.tag("label"):
+            self.text(label)
+        
+        # Check if we have a filename
+        has_file = kwargs.get("value") and isinstance(kwargs["value"], str)
+        
+        if has_file:
+            # Show current file info with option to clear
+            with self.tag("div", style="margin: 5px 0; padding: 10px; background-color: #f0f0f0; border-radius: 3px; display: flex; justify-content: space-between; align-items: center;"):
+                with self.tag("span"):
+                    self.text(f"Current file: {kwargs['value']}")
+                with self.tag(
+                    "button",
+                    ("hx-post", f"/set_component_value?component_id={key}"),
+                    ("hx-vals", '{"new_value": null}'),
+                    ("hx-swap", "none"),
+                    ("type", "button"),
+                    style="background-color: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;"
+                ):
+                    self.text("Remove")
+        else:
+            # Show file input only when no file is present
+            with self.tag(
+                "input",
+                ("hx-ext", "debug"),
+                ("name", "new_value"),
+                ("hx-post", f"/set_component_value?component_id={key}"),
+                ("hx-swap", "none"),
+                ("type", "file"),
+                ("accept", accept),
+                ("hx-encoding", "multipart/form-data"),
+            ):
+                pass
+        
+        # Return the filename directly
+        return lambda x: str(x) if x else None
