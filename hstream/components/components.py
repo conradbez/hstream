@@ -39,6 +39,16 @@ def component_wrapper(component_fucntion):
     return wrapped_component_function
 
 
+def component(component_function):
+    """
+    Decorator to register a function as a component in the HStream Components class.
+    """
+    wrapped_func = component_wrapper(component_function)
+    setattr(Components, component_function.__name__, wrapped_func)
+    return wrapped_func
+
+
+
 class ComponentsGeneric:
     def get_key_based_on_call(self, message):
         """Displays a navigation bar with a list of items.
