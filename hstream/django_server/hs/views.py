@@ -82,7 +82,7 @@ def partial_or_full_html_content(request):
     update_strategy = pick_a_strategy(
         prev_html, html, get_session_var(request, "hs_script_running", False)
     )
-    # print(f"update strategy: {update_strategy}")
+    print(f"[DIFF_STRATEGY] Selected strategy: {update_strategy}")
     response = HttpResponse()
     if get_session_var(request, "hs_script_running", False):
         response.headers["HX-Trigger"] = "update_content_event"

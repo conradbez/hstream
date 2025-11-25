@@ -23,7 +23,21 @@ def setup_test_script(contents):
     wait_for_server()
 
 
-def test_full_replace_strategy_on_initial_load():
+def verify_strategy_in_logs(capsys, expected_strategy):
+    """
+    Verify that the expected diff strategy was logged by the server.
+
+    Args:
+        capsys: pytest's capsys fixture for capturing stdout/stderr
+        expected_strategy: The strategy string to look for (e.g., "1_full_replace")
+    """
+    captured = capsys.readouterr()
+    all_output = captured.out + captured.err
+    strategy_log = f"[DIFF_STRATEGY] Selected strategy: {expected_strategy}"
+    assert strategy_log in all_output, f"Expected strategy '{expected_strategy}' not found in logs. Output:\n{all_output[-2000:]}"
+
+
+def test_full_replace_strategy_on_initial_load(capsys):
     """
     Test that full replace strategy is used on initial page load.
 
@@ -43,13 +57,16 @@ hs.markdown('This is the first render')
         page.goto("http://127.0.0.1:9000/")
         sleep(2)
 
+        # Verify correct strategy was selected
+        verify_strategy_in_logs(capsys, "1_full_replace")
+
         # Verify content is present (full replace happened)
         assert "Initial Load" in page.inner_text("body")
         assert "This is the first render" in page.inner_text("body")
         browser.close()
 
 
-def test_nothing_strategy_when_no_change():
+def test_nothing_strategy_when_no_change(capsys):
     """
     Test that nothing strategy is used when user action doesn't change output.
 
@@ -80,12 +97,15 @@ hs.markdown('More static content')
         button.click()
         sleep(2)
 
+        # Verify correct strategy was selected
+        verify_strategy_in_logs(capsys, "2_nothing")
+
         # Content should be identical (nothing strategy)
         assert page.inner_text("body") == initial_content
         browser.close()
 
 
-def test_partial_replace_strategy_when_content_changes():
+def test_partial_replace_strategy_when_content_changes(capsys):
     """
     Test that partial replace strategy is used when existing content changes.
 
@@ -116,13 +136,16 @@ hs.markdown('This line stays the same')
         text_input.press("Enter")
         sleep(2)
 
+        # Verify correct strategy was selected
+        verify_strategy_in_logs(capsys, "3_partial_replace")
+
         # Content should be updated (partial replace)
         assert "You typed: updated" in page.inner_text("body")
         assert "This line stays the same" in page.inner_text("body")
         browser.close()
 
 
-def test_partial_replace_strategy_when_elements_removed():
+def test_partial_replace_strategy_when_elements_removed(capsys):
     """
     Test that partial replace strategy is used when conditional elements are removed.
 
@@ -161,6 +184,9 @@ if show_extra:
         text_input.focus()  # Trigger update
         sleep(2)
 
+        # Verify correct strategy was selected
+        verify_strategy_in_logs(capsys, "3_partial_replace")
+
         # Conditional lines should be gone
         assert "Line 1: Always visible" in page.inner_text("body")
         assert "Line 2: Always visible" in page.inner_text("body")
@@ -168,7 +194,7 @@ if show_extra:
         browser.close()
 
 
-def test_partial_append_strategy_when_elements_added():
+def test_partial_append_strategy_when_elements_added(capsys):
     """
     Test that partial append strategy is used when new elements are added.
 
@@ -207,6 +233,9 @@ if show_more:
         text_input.focus()  # Trigger update
         sleep(2)
 
+        # Verify correct strategy was selected
+        verify_strategy_in_logs(capsys, "4_partial_append")
+
         # New lines should be appended
         assert "Line 1: Always here" in page.inner_text("body")
         assert "Line 2: Always here" in page.inner_text("body")
@@ -215,7 +244,7 @@ if show_more:
         browser.close()
 
 
-def test_partial_append_with_counter():
+def test_partial_append_with_counter(capsys):
     """
     Test partial append strategy with a counter that adds items incrementally.
 
@@ -258,6 +287,10 @@ for i in range(count):
         # Click to add second item (partial append)
         button.click()
         sleep(2)
+
+        # Verify correct strategy was selected for append
+        verify_strategy_in_logs(capsys, "4_partial_append")
+
         assert "Item 1" in page.inner_text("body")
         assert "Item 2" in page.inner_text("body")
 
@@ -270,7 +303,7 @@ for i in range(count):
         browser.close()
 
 
-def test_multiple_inputs_partial_replace():
+def test_multiple_inputs_partial_replace(capsys):
     """
     Test partial replace with multiple interactive elements.
 
@@ -304,6 +337,9 @@ hs.markdown(f'Status: Active')
         text_input.fill("Bob")
         text_input.press("Enter")
         sleep(2)
+
+        # Verify correct strategy was selected
+        verify_strategy_in_logs(capsys, "3_partial_replace")
 
         assert "Name: Bob" in page.inner_text("body")
         assert "Age: 25" in page.inner_text("body")
