@@ -9,7 +9,7 @@ This flow covers the process from running the command to the user seeing the ini
 ```mermaid
 stateDiagram-v2
     direction LR
-    
+
     state "CLI & Server Startup" as Startup {
         [*] --> RunCommand: hstream run <script>
         RunCommand --> DjangoBoot: run_server()

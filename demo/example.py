@@ -35,14 +35,15 @@ else:
     """
     )
 
-
     hs.markdown("""Or create forms like:""")
     with hs.html("form"):
         user_number = hs.number_input(
             "Input a number",
             default_value=0,
         )
-        hs.markdown(f"Your number is {'*even*' if int(user_number) % 2 == 0 else '*odd*'}")
+        hs.markdown(
+            f"Your number is {'*even*' if int(user_number) % 2 == 0 else '*odd*'}"
+        )
     with hs.html("header"):
         hs.markdown("## HStream also supports displaying plots")
     with hs.html("section"):
@@ -72,7 +73,7 @@ else:
             fig, ax = plt.subplots()
             ax.plot(x, y)
             hs.pyplot(fig, key="myplot")
-        except Exception as e:
+        except Exception:
             hs.markdown(
                 "hmmm seems you don't have matplotlib installed, please install it with `pip install matplotlib`"
             )

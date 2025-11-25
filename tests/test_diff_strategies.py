@@ -34,7 +34,9 @@ def verify_strategy_in_logs(capsys, expected_strategy):
     captured = capsys.readouterr()
     all_output = captured.out + captured.err
     strategy_log = f"[DIFF_STRATEGY] Selected strategy: {expected_strategy}"
-    assert strategy_log in all_output, f"Expected strategy '{expected_strategy}' not found in logs. Output:\n{all_output[-2000:]}"
+    assert (
+        strategy_log in all_output
+    ), f"Expected strategy '{expected_strategy}' not found in logs. Output:\n{all_output[-2000:]}"
 
 
 def test_full_replace_strategy_on_initial_load(capsys):
