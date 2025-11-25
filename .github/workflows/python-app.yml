@@ -16,41 +16,35 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install Poetry
+    - name: Install UV
       run: |
-        curl -sSL https://install.python-poetry.org | python3 -
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-    - name: Install dependencies with Poetry
+    - name: Install dependencies with UV
       run: |
-        poetry install --with dev
-
-    - name: Install pre-commit
-      run: |
-        poetry run pip install pre-commit
+        uv sync
 
     - name: Run pre-commit
       run: |
-        poetry run pre-commit run --all-files
+        uv run pre-commit run --all-files
 
     - name: Install Playwright browsers
       run: |
-        poetry run playwright install
+        uv run playwright install
 
     - name: Run tests
       run: |
-        poetry run pytest --reruns 3 # githubs playwright sometimes fails
+        uv run pytest --reruns 3 # githubs playwright sometimes fails
 
     - name: Build package
       if: github.ref == 'refs/heads/main'
       run: |
-        python -m pip install --upgrade build
-        python -m build
+        uv build
 
     - name: Publish package to PyPI
       if: github.ref == 'refs/heads/main'
       env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |
-        python -m pip install --upgrade twine
-        python -m twine upload dist/*
+        uv publish
