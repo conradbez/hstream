@@ -90,13 +90,13 @@ def partial_or_full_html_content(request):
     strategy_msg = f"[DIFF_STRATEGY] Selected strategy: {update_strategy}"
     print(strategy_msg, flush=True)
     logger.info(strategy_msg)
-    
+
     # Also write to test log file for CI
     try:
-        with open('test_strategy_logs.txt', 'a') as f:
+        with open("test_strategy_logs.txt", "a") as f:
             f.write(f"{strategy_msg}\n")
             f.flush()
-    except:
+    except Exception:
         pass
     response = HttpResponse()
     if get_session_var(request, "hs_script_running", False):

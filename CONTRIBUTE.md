@@ -52,3 +52,8 @@ The default is to bump the patch version (0.1.X), but you can control the versio
 ## Kill orphaned uvicorn processes
 
 `kill -9 $(lsof -t -i:8000)` (or whatever port they we're using)
+
+
+# Precommit
+
+`uv run pre-commit run --all-files`

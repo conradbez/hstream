@@ -32,15 +32,15 @@ def verify_strategy_in_logs(expected_strategy):
     """
     all_output = get_server_logs()
     strategy_log = f"[DIFF_STRATEGY] Selected strategy: {expected_strategy}"
-    
+
     # Also check test log file as fallback
     try:
-        with open('test_strategy_logs.txt', 'r') as f:
+        with open("test_strategy_logs.txt", "r") as f:
             file_output = f.read()
             all_output += "\n" + file_output
     except FileNotFoundError:
         pass
-    
+
     assert (
         strategy_log in all_output
     ), f"Expected strategy '{expected_strategy}' not found in logs. Output:\n{all_output[-2000:]}"
@@ -109,7 +109,7 @@ hs.markdown('More static content')
         sleep(2)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs( "2_nothing")
+        verify_strategy_in_logs("2_nothing")
 
         # Content should be identical (nothing strategy)
         assert page.inner_text("body") == initial_content
@@ -149,7 +149,7 @@ hs.markdown('This line stays the same')
         sleep(2)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs( "3_partial_replace")
+        verify_strategy_in_logs("3_partial_replace")
 
         # Content should be updated (partial replace)
         assert "You typed: updated" in page.inner_text("body")
@@ -198,13 +198,13 @@ if show_extra:
         try:
             text_input = page.locator("input[type=text]").first
             text_input.focus()  # Trigger update
-        except:
+        except Exception:
             # If text input doesn't exist anymore, just trigger with a click elsewhere
             page.locator("body").click()
         sleep(3)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs( "3_partial_replace")
+        verify_strategy_in_logs("3_partial_replace")
 
         # Conditional lines should be gone
         assert "Line 1: Always visible" in page.inner_text("body")
@@ -254,13 +254,13 @@ if show_more:
         try:
             text_input = page.locator("input[type=text]").first
             text_input.focus()  # Trigger update
-        except:
+        except Exception:
             # If text input doesn't exist anymore, just trigger with a click elsewhere
             page.locator("body").click()
         sleep(3)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs( "4_partial_append")
+        verify_strategy_in_logs("4_partial_append")
 
         # New lines should be appended
         assert "Line 1: Always here" in page.inner_text("body")
@@ -316,7 +316,7 @@ for i in range(count):
         sleep(2)
 
         # Verify correct strategy was selected for append
-        verify_strategy_in_logs( "4_partial_append")
+        verify_strategy_in_logs("4_partial_append")
 
         assert "Item 1" in page.inner_text("body")
         assert "Item 2" in page.inner_text("body")
@@ -367,7 +367,7 @@ hs.markdown(f'Status: Active')
         sleep(2)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs( "3_partial_replace")
+        verify_strategy_in_logs("3_partial_replace")
 
         assert "Name: Bob" in page.inner_text("body")
         assert "Age: 25" in page.inner_text("body")

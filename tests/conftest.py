@@ -26,10 +26,10 @@ def run_command():
     open("./tests/file_to_run.py", "w").write(" ")
     global server_process, server_log_file
     os.environ["PORT"] = "9000"
-    
+
     # Create a temporary file to capture server output
-    server_log_file = tempfile.NamedTemporaryFile(mode='w+', delete=False)
-    
+    server_log_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+
     server_process = subprocess.Popen(
         [
             "python",
@@ -41,7 +41,7 @@ def run_command():
         stdout=server_log_file,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1  # Line buffered
+        bufsize=1,  # Line buffered
     )
     sleep(5)  # Increased wait time
 
@@ -54,7 +54,7 @@ def get_server_logs():
         server_log_file.flush()
         # Also sync the filesystem
         os.fsync(server_log_file.fileno())
-        with open(server_log_file.name, 'r') as f:
+        with open(server_log_file.name, "r") as f:
             return f.read()
     return ""
 
@@ -63,7 +63,7 @@ def pytest_sessionstart(session):
     print("All tests are about to start. Starting server")
     # Clean up test log file
     try:
-        os.remove('test_strategy_logs.txt')
+        os.remove("test_strategy_logs.txt")
     except FileNotFoundError:
         pass
     thread = threading.Thread(target=run_command)
