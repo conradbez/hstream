@@ -1,6 +1,6 @@
 [project]
 name = "hstream"
-version = "0.1.57"
+dynamic = ["version"]
 description = ""
 authors = [{ name = "Conrad", email = "conradbez1@gmail.com" }]
 readme = "README.md"
@@ -15,6 +15,12 @@ dependencies = [
 
 [project.scripts]
 hstream = "hstream.cli:cli"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "hstream/_version.py"
 
 [tool.uv]
 dev-dependencies = [
@@ -32,5 +38,5 @@ dev-dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"

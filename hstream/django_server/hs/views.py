@@ -82,7 +82,7 @@ def partial_or_full_html_content(request):
     update_strategy = pick_a_strategy(
         prev_html, html, get_session_var(request, "hs_script_running", False)
     )
-    # print(f"update strategy: {update_strategy}")
+    print(f"[DIFF_STRATEGY] Selected strategy: {update_strategy}")
     response = HttpResponse()
     if get_session_var(request, "hs_script_running", False):
         response.headers["HX-Trigger"] = "update_content_event"
@@ -173,44 +173,42 @@ def run_user_code_and_return_hs_instance(file: Path, request: HttpRequest) -> hs
     finally:
         set_session_var(request, "hs_script_should_stop", False)
     return users_hs_instance
-import os
-import tempfile
-from pathlib import Path
+
 
 def set_component_value(
     request: HttpRequest,
 ):
     component_id = request.GET.get("component_id")
-    
+
     request_server_stop_running_user_script(request, wait=True)
-    
+
     # Handle file uploads
     if request.FILES and "new_value" in request.FILES:
         uploaded_file = request.FILES["new_value"]
-        
+
         # Create tmp directory if it doesn't exist
         tmp_dir = Path("tmp")
         tmp_dir.mkdir(exist_ok=True)
-        
+
         # Save file to tmp directory
         file_path = tmp_dir / uploaded_file.name
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             for chunk in uploaded_file.chunks():
                 f.write(chunk)
-        
+
         # Set the filename as the value
         new_value = uploaded_file.name
-        print(f'File saved to: {file_path}')
-        
+        print(f"File saved to: {file_path}")
+
     else:
         # Handle regular form data
         new_value = request.POST.get("new_value")
         if new_value is None:
             new_value = request.GET.get("new_value")
-    
+
     set_session_var(request, component_id, new_value)
-    print('Component value set to:', new_value)
-    
+    print("Component value set to:", new_value)
+
     response = HttpResponse(f"suc: {request.session[component_id]}", status=200)
     response.headers["HX-Reswap"] = "none"
     response.headers["HX-Trigger"] = "trigger_run_hs_event"

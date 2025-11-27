@@ -9,7 +9,7 @@ This flow covers the process from running the command to the user seeing the ini
 ```mermaid
 stateDiagram-v2
     direction LR
-    
+
     state "CLI & Server Startup" as Startup {
         [*] --> RunCommand: hstream run <script>
         RunCommand --> DjangoBoot: run_server()
@@ -67,6 +67,11 @@ stateDiagram-v2
 > **Swap vs Refresh Caveats**:
 > *   **Full Replace**: Used when the component structure changes significantly. This is the safest fallback but resets the DOM state (e.g., focus, scroll position) unless carefully managed.
 > *   **Partial Replace/Append**: HStream attempts to preserve the DOM by only updating changed elements (identified by consistent IDs). This maintains user focus and input state better than a full refresh.
+>
+> ```python
+> strategy = pick_a_strategy(prev_html, new_html, hs_script_running)
+> # Returns: "1_full_replace", "2_nothing", "3_partial_replace", or "4_partial_append"
+> ```
 
 
 ## Key File Descriptions
