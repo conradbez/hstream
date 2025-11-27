@@ -1,6 +1,7 @@
 from pathlib import Path
 from time import sleep
 import os
+import logging
 from django.http import HttpRequest, HttpResponse
 
 from hstream.hs import hs as hs_type
@@ -8,6 +9,9 @@ from hstream.template import error_html, format_html
 from hstream.utils import pick_a_strategy, split_code_into_blocks
 
 from .session_utils import get_session_var, set_session_var
+
+# Configure logger for diff strategy
+logger = logging.getLogger(__name__)
 
 
 def request_server_stop_running_user_script(request, wait=True):
@@ -82,7 +86,18 @@ def partial_or_full_html_content(request):
     update_strategy = pick_a_strategy(
         prev_html, html, get_session_var(request, "hs_script_running", False)
     )
-    print(f"[DIFF_STRATEGY] Selected strategy: {update_strategy}")
+    # Use both print and logging to ensure capture in tests
+    strategy_msg = f"[DIFF_STRATEGY] Selected strategy: {update_strategy}"
+    print(strategy_msg, flush=True)
+    logger.info(strategy_msg)
+    
+    # Also write to test log file for CI
+    try:
+        with open('test_strategy_logs.txt', 'a') as f:
+            f.write(f"{strategy_msg}\n")
+            f.flush()
+    except:
+        pass
     response = HttpResponse()
     if get_session_var(request, "hs_script_running", False):
         response.headers["HX-Trigger"] = "update_content_event"

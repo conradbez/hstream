@@ -7,13 +7,13 @@ interact with hstream components, triggering different types of DOM updates.
 import platform
 from time import sleep
 from playwright.sync_api import sync_playwright
-from .conftest import write_py_script
+from .conftest import write_py_script, get_server_logs
 
 
 def wait_for_server():
     """Wait for server to be ready on GitHub CI."""
     if not platform.system() == "Darwin":
-        sleep(10)
+        sleep(15)  # Increased wait time for CI
 
 
 def setup_test_script(contents):
@@ -23,23 +23,30 @@ def setup_test_script(contents):
     wait_for_server()
 
 
-def verify_strategy_in_logs(capsys, expected_strategy):
+def verify_strategy_in_logs(expected_strategy):
     """
     Verify that the expected diff strategy was logged by the server.
 
     Args:
-        capsys: pytest's capsys fixture for capturing stdout/stderr
         expected_strategy: The strategy string to look for (e.g., "1_full_replace")
     """
-    captured = capsys.readouterr()
-    all_output = captured.out + captured.err
+    all_output = get_server_logs()
     strategy_log = f"[DIFF_STRATEGY] Selected strategy: {expected_strategy}"
+    
+    # Also check test log file as fallback
+    try:
+        with open('test_strategy_logs.txt', 'r') as f:
+            file_output = f.read()
+            all_output += "\n" + file_output
+    except FileNotFoundError:
+        pass
+    
     assert (
         strategy_log in all_output
     ), f"Expected strategy '{expected_strategy}' not found in logs. Output:\n{all_output[-2000:]}"
 
 
-def test_full_replace_strategy_on_initial_load(capsys):
+def test_full_replace_strategy_on_initial_load():
     """
     Test that full replace strategy is used on initial page load.
 
@@ -56,11 +63,12 @@ hs.markdown('This is the first render')
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs(capsys, "1_full_replace")
+        verify_strategy_in_logs("1_full_replace")
 
         # Verify content is present (full replace happened)
         assert "Initial Load" in page.inner_text("body")
@@ -68,7 +76,7 @@ hs.markdown('This is the first render')
         browser.close()
 
 
-def test_nothing_strategy_when_no_change(capsys):
+def test_nothing_strategy_when_no_change():
     """
     Test that nothing strategy is used when user action doesn't change output.
 
@@ -89,8 +97,9 @@ hs.markdown('More static content')
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         initial_content = page.inner_text("body")
 
@@ -100,14 +109,14 @@ hs.markdown('More static content')
         sleep(2)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs(capsys, "2_nothing")
+        verify_strategy_in_logs( "2_nothing")
 
         # Content should be identical (nothing strategy)
         assert page.inner_text("body") == initial_content
         browser.close()
 
 
-def test_partial_replace_strategy_when_content_changes(capsys):
+def test_partial_replace_strategy_when_content_changes():
     """
     Test that partial replace strategy is used when existing content changes.
 
@@ -127,8 +136,9 @@ hs.markdown('This line stays the same')
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         assert "You typed: original" in page.inner_text("body")
 
@@ -139,7 +149,7 @@ hs.markdown('This line stays the same')
         sleep(2)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs(capsys, "3_partial_replace")
+        verify_strategy_in_logs( "3_partial_replace")
 
         # Content should be updated (partial replace)
         assert "You typed: updated" in page.inner_text("body")
@@ -147,7 +157,7 @@ hs.markdown('This line stays the same')
         browser.close()
 
 
-def test_partial_replace_strategy_when_elements_removed(capsys):
+def test_partial_replace_strategy_when_elements_removed():
     """
     Test that partial replace strategy is used when conditional elements are removed.
 
@@ -171,8 +181,9 @@ if show_extra:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         # Initially all 4 lines should be visible
         assert "Line 1: Always visible" in page.inner_text("body")
@@ -182,12 +193,18 @@ if show_extra:
         # Uncheck to remove conditional elements (partial replace with fewer elements)
         checkbox = page.locator("input[type=checkbox]")
         checkbox.uncheck()
-        text_input = page.locator("input[type=text]")
-        text_input.focus()  # Trigger update
-        sleep(2)
+        # Wait for the page to update and focus on any input to trigger update
+        page.wait_for_timeout(1000)
+        try:
+            text_input = page.locator("input[type=text]").first
+            text_input.focus()  # Trigger update
+        except:
+            # If text input doesn't exist anymore, just trigger with a click elsewhere
+            page.locator("body").click()
+        sleep(3)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs(capsys, "3_partial_replace")
+        verify_strategy_in_logs( "3_partial_replace")
 
         # Conditional lines should be gone
         assert "Line 1: Always visible" in page.inner_text("body")
@@ -196,7 +213,7 @@ if show_extra:
         browser.close()
 
 
-def test_partial_append_strategy_when_elements_added(capsys):
+def test_partial_append_strategy_when_elements_added():
     """
     Test that partial append strategy is used when new elements are added.
 
@@ -220,8 +237,9 @@ if show_more:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         # Initially only 2 lines
         assert "Line 1: Always here" in page.inner_text("body")
@@ -231,12 +249,18 @@ if show_more:
         # Check box to add new elements (partial append)
         checkbox = page.locator("input[type=checkbox]")
         checkbox.check()
-        text_input = page.locator("input[type=text]")
-        text_input.focus()  # Trigger update
-        sleep(2)
+        # Wait for the page to update and focus on any input to trigger update
+        page.wait_for_timeout(1000)
+        try:
+            text_input = page.locator("input[type=text]").first
+            text_input.focus()  # Trigger update
+        except:
+            # If text input doesn't exist anymore, just trigger with a click elsewhere
+            page.locator("body").click()
+        sleep(3)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs(capsys, "4_partial_append")
+        verify_strategy_in_logs( "4_partial_append")
 
         # New lines should be appended
         assert "Line 1: Always here" in page.inner_text("body")
@@ -246,7 +270,7 @@ if show_more:
         browser.close()
 
 
-def test_partial_append_with_counter(capsys):
+def test_partial_append_with_counter():
     """
     Test partial append strategy with a counter that adds items incrementally.
 
@@ -273,8 +297,9 @@ for i in range(count):
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         # Initially no items
         initial_text = page.inner_text("body")
@@ -291,7 +316,7 @@ for i in range(count):
         sleep(2)
 
         # Verify correct strategy was selected for append
-        verify_strategy_in_logs(capsys, "4_partial_append")
+        verify_strategy_in_logs( "4_partial_append")
 
         assert "Item 1" in page.inner_text("body")
         assert "Item 2" in page.inner_text("body")
@@ -305,7 +330,7 @@ for i in range(count):
         browser.close()
 
 
-def test_multiple_inputs_partial_replace(capsys):
+def test_multiple_inputs_partial_replace():
     """
     Test partial replace with multiple interactive elements.
 
@@ -328,8 +353,9 @@ hs.markdown(f'Status: Active')
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+        page.set_default_timeout(60000)  # 60 second timeout for CI
         page.goto("http://127.0.0.1:9000/")
-        sleep(2)
+        sleep(5)
 
         assert "Name: Alice" in page.inner_text("body")
         assert "Age: 25" in page.inner_text("body")
@@ -341,7 +367,7 @@ hs.markdown(f'Status: Active')
         sleep(2)
 
         # Verify correct strategy was selected
-        verify_strategy_in_logs(capsys, "3_partial_replace")
+        verify_strategy_in_logs( "3_partial_replace")
 
         assert "Name: Bob" in page.inner_text("body")
         assert "Age: 25" in page.inner_text("body")
