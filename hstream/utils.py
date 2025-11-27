@@ -32,6 +32,7 @@ def split_code_into_blocks(code: str):
         block = ast.unparse(node)
         blocks.append(block)
 
+    # import ipdb; ipdb.set_trace()
     return blocks
 
 
@@ -48,34 +49,11 @@ def pick_a_strategy(
     current_hs_ids = list(current_hs_ids_and_content.keys())
     prev_hs_ids = list(prev_hs_ids_and_content.keys())
 
-    if prev_html is None or prev_html == "":
+    if prev_html is None or not hs_script_running:
         return "1_full_replace"
 
     elif prev_html == new_html:
         return "2_nothing"
-
-    elif not hs_script_running:
-        # Script finished running, check if we can do partial updates
-        # current id length is shorter than prev id length AND;
-        # current id's are all contained in prev ids
-        if len(current_hs_ids) <= len(prev_hs_ids) and set(current_hs_ids).issubset(
-            set(prev_hs_ids)
-        ):
-            return "3_partial_replace"
-        # current id lengths are greater than previous AND;
-        # prev ids are all contained in current id AND;
-        # where there are prev html values they are the same as current html values
-        elif (
-            len(current_hs_ids) > len(prev_hs_ids)
-            and set(prev_hs_ids).issubset(set(current_hs_ids))
-            and (
-                list(current_hs_ids_and_content.values())[: len(prev_hs_ids)]
-                == list(prev_hs_ids_and_content.values())
-            )
-        ):
-            return "4_partial_append"
-        else:
-            return "1_full_replace"
 
     # current id length is shorter than prev id length AND;
     # current id's are all contained in prev ids
@@ -96,4 +74,4 @@ def pick_a_strategy(
     ):
         return "4_partial_append"
     else:
-        return "1_full_replace"
+        raise ValueError("Strategy not found")

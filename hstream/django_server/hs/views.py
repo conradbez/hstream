@@ -114,26 +114,64 @@ def partial_or_full_html_content(request):
     elif update_strategy == "3_partial_replace":
         current_hs_ids_and_content = get_hs_ids_with_content(html)
         prev_hs_ids_and_content = get_hs_ids_with_content(prev_html)
+        print(f"DEBUG: current_ids={list(current_hs_ids_and_content.keys())}")
+        print(f"DEBUG: prev_ids={list(prev_hs_ids_and_content.keys())}")
+        print(
+            f"DEBUG: partial_keys_updated={get_session_var(request, 'hs_html_partial_keys_updated', [])}"
+        )
+
+        # Check if any elements were removed
+        for old_key in prev_hs_ids_and_content.keys():
+            if old_key not in current_hs_ids_and_content:
+                print(
+                    f"DEBUG: Element {old_key} was removed, falling back to full replace"
+                )
+                set_session_var(request, "hs_html_partial_keys_updated", [])
+                set_session_var(request, "hs_html_last_sent", html)
+                response.content = html
+                response.headers.pop("HX-Reswap", None)
+                response.headers.pop("HX-Target", None)
+                return response
+
+        # Find all changed elements
+        changed_elements = []
         for old_key, old_value in prev_hs_ids_and_content.items():
             if old_key in get_session_var(request, "hs_html_partial_keys_updated", []):
-                break
-            new_value = current_hs_ids_and_content.get(old_key, False)
-            if new_value:
-                if old_value != new_value:
-                    set_session_var(
-                        request,
-                        "hs_html_partial_keys_updated",
-                        get_session_var(request, "hs_html_partial_keys_updated", [])
-                        + [old_key],
-                    )
-                    response.headers["HX-Target"] = f"#{old_key}"
-                    response.headers["HX-Reswap"] = "innerHTML"
-                    print("partial html sent")
-                    return new_value
-        # if we reach here we swap to full replacement strategy
-        response.headers["HX-Reswap"] = "none"
-        response.headers["HX-Target"] = "none"
-        return response
+                continue
+            new_value = current_hs_ids_and_content.get(old_key)
+            if new_value and old_value != new_value:
+                changed_elements.append(old_key)
+
+        print(f"DEBUG: changed_elements={changed_elements}")
+
+        # If multiple elements changed, fall back to full replace for simplicity
+        # HTMX doesn't handle multiple partial updates well in a single response
+        if len(changed_elements) > 1:
+            print("DEBUG: Multiple elements changed, falling back to full replace")
+            set_session_var(request, "hs_html_partial_keys_updated", [])
+            set_session_var(request, "hs_html_last_sent", html)
+            response.content = html
+            return response
+        elif len(changed_elements) == 1:
+            # Update the single changed element
+            old_key = changed_elements[0]
+            new_value = current_hs_ids_and_content[old_key]
+            set_session_var(
+                request,
+                "hs_html_partial_keys_updated",
+                get_session_var(request, "hs_html_partial_keys_updated", [])
+                + [old_key],
+            )
+            response.headers["HX-Target"] = f"#{old_key}"
+            response.headers["HX-Reswap"] = "innerHTML"
+            response.content = new_value
+            print(f"partial html sent for {old_key}")
+            return response
+        else:
+            # No changes found
+            response.headers["HX-Reswap"] = "none"
+            response.headers["HX-Target"] = "none"
+            return response
     elif update_strategy == "4_partial_append":
         # handle the case where script is running for the first time so current is more complete than old
         # and we want to append the new content to the old content
