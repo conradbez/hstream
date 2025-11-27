@@ -2,6 +2,9 @@
 Dockerfile
 example.py
 
+# Auto-generated version file
+hstream/_version.py
+
 .*pyc
 # Byte-compiled / optimized / DLL files
 __pycache__/
