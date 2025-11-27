@@ -32,7 +32,6 @@ def split_code_into_blocks(code: str):
         block = ast.unparse(node)
         blocks.append(block)
 
-    # import ipdb; ipdb.set_trace()
     return blocks
 
 
@@ -48,7 +47,6 @@ def pick_a_strategy(
     prev_hs_ids_and_content = get_hs_ids_with_content(prev_html)
     current_hs_ids = list(current_hs_ids_and_content.keys())
     prev_hs_ids = list(prev_hs_ids_and_content.keys())
-
 
     if prev_html is None or prev_html == "":
         return "1_full_replace"
