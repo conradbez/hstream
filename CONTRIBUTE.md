@@ -1,3 +1,14 @@
+## Running installing and running locally in `.test-venv`
+
+```bash
+uv venv test-env && source test-env/bin/activate  # Create new uv environment and activate
+pip install -e .  # Install local library in editable mode (simulates PyPI install)
+hstream run your_test_script.py  # Test the library manually with a script
+```
+
+
+
+
 ## Deploy
 
 We use automatic versioning and deployment with hatch-vcs and GitHub Actions.

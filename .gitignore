@@ -168,3 +168,4 @@ cython_debug/
 #.idea/
 hstream/__pycache__/hs.cpython-312.pyc
 .aider*
+test_strategy_logs.txt
