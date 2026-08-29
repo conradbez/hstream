@@ -4,20 +4,32 @@ _Scope: what htmx 4.0 (released 28 Aug 2026, morphing built into core) changes f
 HStream's "re-run the whole script on every input, then diff-and-swap" model.
 Companion to [`update_strategies.md`](./update_strategies.md)._
 
+## Status
+
+**Migration applied on this branch and verified** (see "Verification" below).
+The template now pins `htmx.org@4.0.0`, uses `hx-swap="innerMorph"`, and drops the
+idiomorph / path-deps / debug extension scripts.
+
 ## TL;DR
 
-- **Net positive, and partly forced on us.** The template already loads
-  `htmx.org@latest`, so htmx 4 is being pulled *today* — this is a migration to
-  plan, not a hypothetical.
+- **Net positive.** The big win is for inputs; the cost is small and bounded.
+- **The `@latest` pin was a latent risk, not an active break.** `htmx.org@latest`
+  currently still resolves to **htmx 2.0.10** — htmx 4.0.0 is published but is not
+  yet the npm `latest` tag. So we were not silently on 4 already; the risk was an
+  eventual unvalidated major bump. Pinning `@4.0.0` removes that risk either way.
 - **The big win is for inputs.** htmx 4 protects focused inputs and preserves
   unfocused input values across a morph. Those are exactly the two problems the
   `focusout`/`hx-swap="none"` component wiring and half of the `pick_a_strategy`
-  machinery exist to work around.
+  machinery exist to work around. Verified in a browser (below).
 - **It does not replace the whole strategy engine.** The progressive-render paths
   (append while a long script is still running, don't-clobber-partially-rendered)
   are orthogonal to morphing and stay.
 - **Low risk for us specifically:** no Alpine → the CSP `style-src` caveat is N/A;
   web-component focus regressions matter only if a user embeds one.
+- **One removal to note:** `hx-disabled-elt` no longer exists in htmx 4, so the
+  in-flight disabling of inputs/buttons on `#run_hs_dummy` is now a no-op. Harmless
+  for correctness (re-runs are idempotent) but worth a follow-up if double-submit
+  protection is wanted.
 
 ## How HStream swaps today
 
@@ -78,21 +90,50 @@ exactly that, so we're well-positioned.
 
 ## Concrete migration checklist
 
-1. **Pin versions.** `htmx.org@latest` and unversioned `idiomorph-ext` /
-   `path-deps` / `hyperscript` are already live-loading htmx 4. Pin htmx to an
-   explicit `4.x` and validate deliberately rather than drifting.
-2. **Swap syntax.** `hx-swap="morph:innerHTML"` → `hx-swap="innerMorph"`
-   (`format_html.html:67`).
-3. **Drop the extension.** Remove the `idiomorph-ext.min.js` `<script>`; confirm
-   `path-deps`/`debug` ext paths still resolve under the htmx 4 dist layout.
-4. **Revisit input guards.** With focus/value protection, test whether
-   `number_input` can move off `focusout` to a live trigger and whether
-   `text_input`'s `hx-swap="none"` guard is still needed. This is where the UX
-   upgrade (live reactivity) is realized.
-5. **Custom components.** If any embed focus-sensitive web components, add
-   `hx-morph-skip` and watch #3602/#3590.
-6. **Regression-test the strategy engine.** The append/partial paths are the risky
-   surface — verify progressive rendering of a slow script still streams correctly.
+- [x] **Pin versions.** `htmx.org@latest` → `htmx.org@4.0.0/dist/htmx.min.js`;
+      `hyperscript.org@latest` → `@0.9.13`. Validate deliberately rather than
+      drifting on `@latest`.
+- [x] **Swap syntax.** `hx-swap="morph:innerHTML"` → `hx-swap="innerMorph"`
+      (`format_html.html`).
+- [x] **Drop the extensions.** Removed the `idiomorph-ext.min.js`, `path-deps.js`,
+      and `debug.js` `<script>`s — morphing is core in htmx 4 and the old
+      `dist/ext/*.js` paths 404. Also removed the two `("hx-ext", "debug")` attrs
+      in `components.py` (text and file inputs).
+- [ ] **Revisit input guards (follow-up).** With focus/value protection, test
+      whether `number_input` can move off `focusout` to a live trigger and whether
+      `text_input`'s `hx-swap="none"` guard is still needed. This is where the UX
+      upgrade (live reactivity) is realized — deliberately left as a separate
+      change so this PR is a behaviour-preserving swap.
+- [ ] **Custom components (follow-up).** If any embed focus-sensitive web
+      components, add `hx-morph-skip` and watch #3602/#3590.
+- [ ] **`hx-disabled-elt` replacement (follow-up).** Removed in htmx 4; decide
+      whether double-submit protection needs re-implementing.
+
+## Verification
+
+Because this sandbox's browser can't reach the CDN and can't run the Django server
+and Chromium simultaneously, the migration was verified in two halves that don't
+need both at once (real htmx 4.0.0 served locally to the browser):
+
+**Browser — real htmx 4.0.0, `innerMorph`:**
+- `window.htmx.version === "4.0.0"`; the `hx-get` + `hx-swap="innerMorph"` load
+  pattern hstream uses populates `#hs-content`, and a subsequent swap morphs it.
+- **Focused-input protection (the headline win):** with an input focused and
+  `half-typed` in it, firing three `update_content_event`-triggered morphs (echo
+  advanced `tick 1`→`tick 4`, so morphs really ran) left the input **still focused
+  with its typed value intact** — even though the server returned an empty input
+  each time. This is the mid-type clobber that htmx 2 + idiomorph could not
+  guarantee. Zero JS page errors throughout.
+
+**Server (in-process, no browser):** template renders with htmx `@4.0.0`,
+`innerMorph`, and no idiomorph/path-deps/debug scripts; text/number/checkbox/button/
+file components still render valid `hx-post` markup with no `hx-ext="debug"`; the
+untouched `pick_a_strategy` still returns full/nothing/append as expected.
+
+> Note on running the app's own Playwright suite (`tests/1_basic_test.py`): it
+> loads htmx from unpkg in the browser and starts the server via `conftest.py`, so
+> it exercises the same interactions in CI where the browser has network. The
+> two-halves approach above is only a sandbox workaround, not a replacement.
 
 ## Verdict
 

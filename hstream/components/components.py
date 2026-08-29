@@ -125,7 +125,6 @@ class Components(ComponentsGeneric):
             self.text(label)
         with self.tag(
             "input",
-            ("hx-ext", "debug"),
             ("name", "new_value"),
             ("hx-post", f"/set_component_value?component_id={key}"),
             ("hx-swap", "none"),
@@ -570,7 +569,6 @@ class Components(ComponentsGeneric):
             # Show file input only when no file is present
             with self.tag(
                 "input",
-                ("hx-ext", "debug"),
                 ("name", "new_value"),
                 ("hx-post", f"/set_component_value?component_id={key}"),
                 ("hx-swap", "none"),
