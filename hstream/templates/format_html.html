@@ -9,6 +9,72 @@
        rather than tracking @latest so a major bump can't land unvalidated. -->
   <script src="https://unpkg.com/htmx.org@4.0.0/dist/htmx.min.js"></script>
   <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
+  <script type="text/javascript">
+    // htmx 4 dropped hx-disabled-elt (an htmx 2 attribute - the string doesn't
+    // appear in the 4.0.0 bundle at all). We still need it: while a script rerun
+    // is in flight, the inputs and buttons must be locked, or a user can queue
+    // overlapping /run_hs requests. So reimplement the slice of the htmx 2
+    // semantics we use, driven by the same attribute, against htmx 4's renamed
+    // (colon-namespaced) request events.
+    (function () {
+      var disabled = new Set();
+      var inFlight = 0;
+      var refocus = null;
+
+      function eltsToDisable(evt) {
+        var ctx = evt.detail && evt.detail.ctx;
+        var source = ctx && ctx.sourceElement;
+        var selector = source && source.getAttribute && source.getAttribute('hx-disabled-elt');
+        return selector ? document.querySelectorAll(selector) : [];
+      }
+
+      // Caret position isn't readable on every input type, so ask forgiveness.
+      function caretOf(elt) {
+        try {
+          return { start: elt.selectionStart, end: elt.selectionEnd };
+        } catch (e) {
+          return { start: null, end: null };
+        }
+      }
+
+      document.addEventListener('htmx:before:request', function (evt) {
+        var elts = eltsToDisable(evt);
+        if (!elts.length) return;
+        inFlight++;
+        var active = document.activeElement;
+        elts.forEach(function (elt) {
+          // Disabling the focused element blurs it, which would throw away the
+          // focus and caret that innerMorph is otherwise careful to preserve.
+          // Remember them so they can be restored once the request settles.
+          if (elt === active) {
+            var caret = caretOf(elt);
+            refocus = { elt: elt, start: caret.start, end: caret.end };
+          }
+          if (!elt.disabled) {
+            elt.disabled = true;
+            disabled.add(elt);
+          }
+        });
+      });
+
+      document.addEventListener('htmx:finally:request', function (evt) {
+        if (!eltsToDisable(evt).length) return;
+        // Only release once the last overlapping rerun has settled.
+        if (--inFlight > 0) return;
+        disabled.forEach(function (elt) { elt.disabled = false; });
+        disabled.clear();
+        if (refocus && refocus.elt.isConnected) {
+          refocus.elt.focus();
+          if (refocus.start !== null) {
+            try {
+              refocus.elt.setSelectionRange(refocus.start, refocus.end);
+            } catch (e) { /* input type without a caret */ }
+          }
+        }
+        refocus = null;
+      });
+    })();
+  </script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
