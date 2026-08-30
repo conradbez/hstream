@@ -74,6 +74,14 @@ jobs:
         default_bump: patch
         tag_prefix: v
 
+    # github-tag-action pushes the new tag straight to the remote, so the local
+    # checkout never sees it. Without this fetch hatch-vcs falls back to the
+    # previous tag and builds a dev version with a local identifier
+    # (e.g. 0.4.1.dev3+gfd3a366), which PyPI rejects with a 400.
+    - name: Fetch the tag just created
+      run: |
+        git fetch --tags --force
+
     - name: Build package
       run: |
         uv build
