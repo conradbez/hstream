@@ -35,6 +35,7 @@ dev-dependencies = [
     "python-dotenv>=1.0.1",
     "playwright>=1.43.0",
     "pytest-rerunfailures>=14.0",
+    "matplotlib>=3.8",
 ]
 
 [build-system]
